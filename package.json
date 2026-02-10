@@ -3,13 +3,22 @@
   "displayName": "Awesome Copilot Sync",
   "description": "Sync GitHub Copilot agents, prompts, instructions, and skills from awesome-copilot repositories",
   "version": "1.0.0",
-  "publisher": "your-publisher-name",
+  "publisher": "gardltio",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gardlt/vscode-awesome-copilot.git"
+  },
+  "homepage": "https://github.com/gardlt/vscode-awesome-copilot#readme",
+  "bugs": {
+    "url": "https://github.com/gardlt/vscode-awesome-copilot/issues"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
   "categories": [
     "Other",
-    "Snippets"
+    "Extension Packs"
   ],
   "keywords": [
     "copilot",
