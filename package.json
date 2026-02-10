@@ -1,0 +1,149 @@
+{
+  "name": "vscode-awesome-copilot",
+  "displayName": "Awesome Copilot Sync",
+  "description": "Sync GitHub Copilot agents, prompts, instructions, and skills from awesome-copilot repositories",
+  "version": "1.0.0",
+  "publisher": "your-publisher-name",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other",
+    "Snippets"
+  ],
+  "keywords": [
+    "copilot",
+    "ai",
+    "agents",
+    "prompts",
+    "github"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "awesome-copilot-sync.configure",
+        "title": "Configure Repository",
+        "category": "Awesome Copilot"
+      },
+      {
+        "command": "awesome-copilot-sync.sync",
+        "title": "Sync All Resources",
+        "category": "Awesome Copilot"
+      },
+      {
+        "command": "awesome-copilot-sync.syncAgents",
+        "title": "Sync Agents Only",
+        "category": "Awesome Copilot"
+      },
+      {
+        "command": "awesome-copilot-sync.syncPrompts", 
+        "title": "Sync Prompts Only",
+        "category": "Awesome Copilot"
+      },
+      {
+        "command": "awesome-copilot-sync.syncInstructions",
+        "title": "Sync Instructions Only", 
+        "category": "Awesome Copilot"
+      },
+      {
+        "command": "awesome-copilot-sync.syncSkills",
+        "title": "Sync Skills Only",
+        "category": "Awesome Copilot"
+      },
+      {
+        "command": "awesome-copilot-sync.initializeStructure",
+        "title": "Initialize Project Structure",
+        "category": "Awesome Copilot"
+      },
+      {
+        "command": "awesome-copilot-sync.findAndAddAgent",
+        "title": "Find and Add Agent",
+        "category": "Awesome Copilot"
+      }
+    ],
+    "configuration": {
+      "title": "Awesome Copilot Sync",
+      "properties": {
+        "awesome-copilot-sync.targetRepository": {
+          "type": "string",
+          "default": "github/awesome-copilot",
+          "description": "Target repository to sync from (format: owner/repo)"
+        },
+        "awesome-copilot-sync.branch": {
+          "type": "string",
+          "default": "main",
+          "description": "Branch to sync from"
+        },
+        "awesome-copilot-sync.autoSync": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically sync when workspace opens"
+        },
+        "awesome-copilot-sync.syncOnSave": {
+          "type": "boolean", 
+          "default": false,
+          "description": "Check for updates when saving copilot files"
+        }
+      }
+    },
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "awesome-copilot-sync.sync",
+          "group": "navigation",
+          "when": "explorerResourceIsFolder"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "awesome-copilot-sync.configure"
+        },
+        {
+          "command": "awesome-copilot-sync.sync"
+        },
+        {
+          "command": "awesome-copilot-sync.syncAgents"
+        },
+        {
+          "command": "awesome-copilot-sync.syncPrompts"
+        },
+        {
+          "command": "awesome-copilot-sync.syncInstructions"
+        },
+        {
+          "command": "awesome-copilot-sync.syncSkills"
+        },
+        {
+          "command": "awesome-copilot-sync.initializeStructure"
+        },
+        {
+          "command": "awesome-copilot-sync.findAndAddAgent"
+        }
+      ]
+    }
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "deploy": "vsce publish"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^7.11.0",
+    "@typescript-eslint/parser": "^7.11.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5",
+    "@vscode/vsce": "^2.15.0"
+  }
+}
