@@ -3,6 +3,35 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as https from 'https';
 
+// Logging utility functions
+function logInfo(operation: string, message: string, data?: any) {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [INFO] [${operation}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+}
+
+function logError(operation: string, message: string, error?: any) {
+    const timestamp = new Date().toISOString();
+    console.error(`[${timestamp}] [ERROR] [${operation}] ${message}`, error);
+}
+
+function logWarn(operation: string, message: string, data?: any) {
+    const timestamp = new Date().toISOString();
+    console.warn(`[${timestamp}] [WARN] [${operation}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+}
+
+function logDebug(operation: string, message: string, data?: any) {
+    const timestamp = new Date().toISOString();
+    console.debug(`[${timestamp}] [DEBUG] [${operation}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+}
+
+function generateOperationId(): string {
+    return Math.random().toString(36).substr(2, 9);
+}
+
+function createAttributionComment(repository: string, branch: string, resourcePath: string): string {
+    return `# Synced from: https://github.com/${repository}/blob/${branch}/${resourcePath}\n`;
+}
+
 interface GitHubFile {
     name: string;
     path: string;
@@ -53,7 +82,16 @@ interface SyncStatus {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Awesome Copilot Sync is now active!');
+    logInfo('EXTENSION', 'Awesome Copilot Sync extension is activating...');
+    
+    const extensionVersion = context.extension.packageJSON.version;
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    
+    logInfo('EXTENSION', 'Extension details', {
+        version: extensionVersion,
+        workspaceFolders: workspaceFolders?.length || 0,
+        activeWorkspace: workspaceFolders?.[0]?.uri.fsPath
+    });
 
     // Register commands
     const commands = [
@@ -71,16 +109,45 @@ export function activate(context: vscode.ExtensionContext) {
     ];
 
     commands.forEach(command => context.subscriptions.push(command));
+    
+    logInfo('EXTENSION', 'Registered commands', {
+        commandCount: commands.length,
+        commands: [
+            'configure', 'sync', 'syncAgents', 'syncPrompts', 'syncInstructions', 
+            'syncSkills', 'initializeStructure', 'findAndAddAgent', 'findAndAddPrompt', 
+            'findAndAddInstruction', 'findAndAddSkill'
+        ]
+    });
 
     // Auto sync if enabled
-    if (vscode.workspace.getConfiguration('awesome-copilot-sync').get('autoSync')) {
+    const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
+    const autoSync = config.get('autoSync');
+    
+    logInfo('EXTENSION', 'Checking auto-sync configuration', { autoSync });
+    
+    if (autoSync) {
+        logInfo('EXTENSION', 'Auto-sync is enabled, starting sync...');
         syncAll();
+    } else {
+        logInfo('EXTENSION', 'Auto-sync is disabled');
     }
+    
+    logInfo('EXTENSION', 'Extension activation complete!');
 }
 
 async function configureRepository() {
+    const operationId = generateOperationId();
+    logInfo('CONFIG', 'Starting repository configuration', { operationId });
+    
     const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
     const currentRepo = config.get<string>('targetRepository') || 'github/awesome-copilot';
+    const currentBranch = config.get<string>('branch') || 'main';
+    
+    logDebug('CONFIG', 'Current configuration', {
+        operationId,
+        currentRepo,
+        currentBranch
+    });
     
     const repository = await vscode.window.showInputBox({
         prompt: 'Enter the repository to sync from (format: owner/repo)',
@@ -100,17 +167,49 @@ async function configureRepository() {
         });
 
         if (branch) {
-            await config.update('targetRepository', repository, vscode.ConfigurationTarget.Workspace);
-            await config.update('branch', branch, vscode.ConfigurationTarget.Workspace);
-            
-            vscode.window.showInformationMessage(`Configuration updated! Repository: ${repository}, Branch: ${branch}`);
+            try {
+                logInfo('CONFIG', 'Updating configuration', { 
+                    operationId,
+                    repository, 
+                    branch 
+                });
+                
+                await config.update('targetRepository', repository, vscode.ConfigurationTarget.Workspace);
+                await config.update('branch', branch, vscode.ConfigurationTarget.Workspace);
+                
+                logInfo('CONFIG', 'Configuration updated successfully', {
+                    operationId,
+                    repository,
+                    branch
+                });
+                
+                vscode.window.showInformationMessage(`Configuration updated! Repository: ${repository}, Branch: ${branch}`);
+            } catch (error) {
+                logError('CONFIG', 'Failed to update configuration', error);
+                vscode.window.showErrorMessage(`Failed to update configuration: ${error}`);
+            }
+        } else {
+            logWarn('CONFIG', 'Configuration cancelled - no branch specified', { operationId });
         }
+    } else {
+        logWarn('CONFIG', 'Configuration cancelled - no repository specified', { operationId });
     }
 }
 
 async function initializeStructure() {
+    const operationId = generateOperationId();
+    logInfo('INIT', 'Starting structure initialization', { operationId });
+    
     const workspaceFolder = getWorkspaceFolder();
-    if (!workspaceFolder) return;
+    if (!workspaceFolder) {
+        logError('INIT', 'No workspace folder found during initialization', { operationId });
+        return;
+    }
+    
+    logDebug('INIT', 'Workspace folder found', { 
+        operationId,
+        workspaceFolder 
+    });
 
     const directories = [
         '.github',
@@ -121,16 +220,36 @@ async function initializeStructure() {
     ];
 
     try {
+        logDebug('INIT', 'Creating directory structure', {
+            operationId,
+            directories
+        });
+        
         for (const dir of directories) {
             const dirPath = path.join(workspaceFolder, dir);
             if (!fs.existsSync(dirPath)) {
+                logDebug('INIT', 'Creating directory', { 
+                    operationId,
+                    directory: dir,
+                    fullPath: dirPath 
+                });
                 fs.mkdirSync(dirPath, { recursive: true });
+            } else {
+                logDebug('INIT', 'Directory already exists', { 
+                    operationId,
+                    directory: dir,
+                    fullPath: dirPath 
+                });
             }
         }
 
         // Create basic copilot-instructions.md if it doesn't exist
         const instructionsPath = path.join(workspaceFolder, '.github', 'copilot-instructions.md');
         if (!fs.existsSync(instructionsPath)) {
+            logDebug('INIT', 'Creating copilot-instructions.md template', { 
+                operationId,
+                path: instructionsPath 
+            });
             const template = `# GitHub Copilot Instructions
 
 This file provides instructions to GitHub Copilot for working with this repository.
@@ -148,11 +267,20 @@ This file provides instructions to GitHub Copilot for working with this reposito
 <!-- Add architectural patterns and decisions here -->
 `;
             fs.writeFileSync(instructionsPath, template);
+        } else {
+            logDebug('INIT', 'copilot-instructions.md already exists', { 
+                operationId,
+                path: instructionsPath 
+            });
         }
 
         // Create AGENTS.md if it doesn't exist
         const agentsPath = path.join(workspaceFolder, 'AGENTS.md');
         if (!fs.existsSync(agentsPath)) {
+            logDebug('INIT', 'Creating AGENTS.md template', { 
+                operationId,
+                path: agentsPath 
+            });
             const template = `# AGENTS.md
 
 ## Project Overview
@@ -168,17 +296,35 @@ This file provides instructions to GitHub Copilot for working with this reposito
 <!-- Add development workflow instructions -->
 `;
             fs.writeFileSync(agentsPath, template);
+        } else {
+            logDebug('INIT', 'AGENTS.md already exists', { 
+                operationId,
+                path: agentsPath 
+            });
         }
 
+        logInfo('INIT', 'Project structure initialized successfully', { operationId });
         vscode.window.showInformationMessage('Project structure initialized successfully!');
     } catch (error) {
+        logError('INIT', 'Failed to initialize structure', error);
         vscode.window.showErrorMessage(`Failed to initialize structure: ${error}`);
     }
 }
 
 async function syncAll() {
+    const operationId = generateOperationId();
+    logInfo('SYNC_ALL', 'Starting complete sync operation', { operationId });
+    
     const workspaceFolder = getWorkspaceFolder();
-    if (!workspaceFolder) return;
+    if (!workspaceFolder) {
+        logError('SYNC_ALL', 'No workspace folder found during sync', { operationId });
+        return;
+    }
+    
+    logDebug('SYNC_ALL', 'Workspace folder found', { 
+        operationId,
+        workspaceFolder 
+    });
 
     const progress = await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -188,13 +334,30 @@ async function syncAll() {
         const resourceTypes = ['agents', 'prompts', 'instructions', 'skills'];
         let totalFiles = 0;
         let processedFiles = 0;
+        
+        logDebug('SYNC_ALL', 'Starting progress tracking', {
+            operationId,
+            resourceTypes,
+            totalResourceTypes: resourceTypes.length
+        });
 
         for (let i = 0; i < resourceTypes.length; i++) {
             const resourceType = resourceTypes[i];
             
             if (token.isCancellationRequested) {
+                logWarn('SYNC_ALL', 'Sync operation cancelled by user', { 
+                    operationId,
+                    currentResourceType: resourceType,
+                    progress: `${i}/${resourceTypes.length}`
+                });
                 break;
             }
+
+            logInfo('SYNC_ALL', 'Starting resource type sync', {
+                operationId,
+                resourceType,
+                progress: `${i + 1}/${resourceTypes.length}`
+            });
 
             progress.report({ 
                 message: `Syncing ${resourceType}...`,
@@ -204,23 +367,52 @@ async function syncAll() {
             const result = await syncResourceTypeInternal(resourceType);
             totalFiles += result.files.length;
             processedFiles = totalFiles;
+            
+            logInfo('SYNC_ALL', 'Resource type sync completed', {
+                operationId,
+                resourceType,
+                filesProcessed: result.files.length,
+                success: result.success,
+                errors: result.errors
+            });
         }
 
         return { totalFiles, processedFiles };
     });
 
     if (progress) {
+        logInfo('SYNC_ALL', 'Complete sync operation finished', {
+            operationId,
+            totalFiles: progress.totalFiles,
+            processedFiles: progress.processedFiles
+        });
         vscode.window.showInformationMessage(`Sync completed! Processed ${progress.totalFiles} files.`);
+    } else {
+        logWarn('SYNC_ALL', 'Sync operation completed without progress data', { operationId });
     }
 }
 
 async function syncResourceType(resourceType: 'agents' | 'prompts' | 'instructions' | 'skills') {
+    const operationId = generateOperationId();
+    logInfo('SYNC_RESOURCE', 'Starting resource type sync', { 
+        operationId,
+        resourceType 
+    });
+    
     return vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: `Syncing ${resourceType}`,
         cancellable: false
     }, async () => {
         const result = await syncResourceTypeInternal(resourceType);
+        
+        logInfo('SYNC_RESOURCE', 'Resource type sync completed', {
+            operationId,
+            resourceType,
+            success: result.success,
+            filesCount: result.files.length,
+            errorsCount: result.errors.length
+        });
         
         if (result.success) {
             vscode.window.showInformationMessage(
@@ -237,24 +429,62 @@ async function syncResourceType(resourceType: 'agents' | 'prompts' | 'instructio
 }
 
 async function syncResourceTypeInternal(resourceType: string): Promise<SyncStatus> {
+    const operationId = generateOperationId();
+    logInfo('SYNC_INTERNAL', 'Starting internal resource sync', { 
+        operationId,
+        resourceType 
+    });
+    
     const workspaceFolder = getWorkspaceFolder();
     if (!workspaceFolder) {
+        logError('SYNC_INTERNAL', 'No workspace folder found', { operationId, resourceType });
         return { success: false, files: [], errors: ['No workspace folder found'] };
     }
 
     const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
     const repository = config.get<string>('targetRepository') || 'github/awesome-copilot';
     const branch = config.get<string>('branch') || 'main';
+    
+    logDebug('SYNC_INTERNAL', 'Sync configuration', {
+        operationId,
+        resourceType,
+        repository,
+        branch,
+        workspaceFolder
+    });
 
     try {
+        logDebug('SYNC_INTERNAL', 'Fetching directory contents', {
+            operationId,
+            repository,
+            branch,
+            resourceType
+        });
+        
         const files = await fetchDirectoryContents(repository, branch, resourceType);
         const syncedFiles: string[] = [];
         const errors: string[] = [];
+        
+        logInfo('SYNC_INTERNAL', 'Directory contents fetched', {
+            operationId,
+            resourceType,
+            fileCount: files.length,
+            files: files.map(f => ({ name: f.name, type: f.type }))
+        });
 
         // Ensure target directory exists
         const targetDir = path.join(workspaceFolder, '.github', resourceType);
         if (!fs.existsSync(targetDir)) {
+            logDebug('SYNC_INTERNAL', 'Creating target directory', {
+                operationId,
+                targetDir
+            });
             fs.mkdirSync(targetDir, { recursive: true });
+        } else {
+            logDebug('SYNC_INTERNAL', 'Target directory already exists', {
+                operationId,
+                targetDir
+            });
         }
 
         for (const file of files) {
@@ -264,7 +494,7 @@ async function syncResourceTypeInternal(resourceType: string): Promise<SyncStatu
                     const localPath = path.join(targetDir, file.name);
                     
                     // Add attribution header to the content
-                    const attribution = `<!-- Synced from: https://github.com/${repository}/blob/${branch}/${file.path} -->\n`;
+                    const attribution = createAttributionComment(repository, branch, file.path);
                     const finalContent = attribution + content;
                     
                     fs.writeFileSync(localPath, finalContent);
@@ -275,91 +505,231 @@ async function syncResourceTypeInternal(resourceType: string): Promise<SyncStatu
             }
         }
 
-        return { 
+        const result = { 
             success: errors.length === 0, 
             files: syncedFiles, 
             errors 
         };
+        
+        logInfo('SYNC_INTERNAL', 'Resource sync completed', {
+            operationId,
+            resourceType,
+            result
+        });
+        
+        return result;
     } catch (error) {
+        const errorMsg = `Failed to fetch ${resourceType}: ${error}`;
+        logError('SYNC_INTERNAL', errorMsg, error);
         return { 
             success: false, 
             files: [], 
-            errors: [`Failed to fetch ${resourceType}: ${error}`] 
+            errors: [errorMsg] 
         };
     }
 }
 
 function getWorkspaceFolder(): string | undefined {
     const workspaceFolders = vscode.workspace.workspaceFolders;
+    
+    logDebug('WORKSPACE', 'Checking workspace folders', {
+        workspaceFoldersCount: workspaceFolders?.length || 0,
+        workspaceFolders: workspaceFolders?.map(f => f.uri.fsPath)
+    });
+    
     if (!workspaceFolders || workspaceFolders.length === 0) {
+        logError('WORKSPACE', 'No workspace folder found');
         vscode.window.showErrorMessage('No workspace folder found. Please open a folder first.');
         return undefined;
     }
-    return workspaceFolders[0].uri.fsPath;
+    
+    const workspaceFolder = workspaceFolders[0].uri.fsPath;
+    logDebug('WORKSPACE', 'Using workspace folder', { workspaceFolder });
+    
+    return workspaceFolder;
 }
 
 async function fetchDirectoryContents(repository: string, branch: string, path: string): Promise<GitHubFile[]> {
+    const operationId = generateOperationId();
+    const url = `https://api.github.com/repos/${repository}/contents/${path}?ref=${branch}`;
+    
+    logInfo('API', 'Fetching directory contents from GitHub API', {
+        operationId,
+        repository,
+        branch,
+        path,
+        url
+    });
+    
     return new Promise((resolve, reject) => {
-        const url = `https://api.github.com/repos/${repository}/contents/${path}?ref=${branch}`;
+        
+        const requestHeaders = {
+            'User-Agent': 'VSCode-Awesome-Copilot-Sync',
+            'Accept': 'application/vnd.github.v3+json'
+        };
+        
+        logDebug('API', 'Making GitHub API request', {
+            operationId,
+            headers: requestHeaders
+        });
         
         https.get(url, {
-            headers: {
-                'User-Agent': 'VSCode-Awesome-Copilot-Sync',
-                'Accept': 'application/vnd.github.v3+json'
-            }
+            headers: requestHeaders
         }, (res) => {
             let data = '';
             
+            logDebug('API', 'Received response', {
+                operationId,
+                statusCode: res.statusCode,
+                headers: res.headers
+            });
+            
             res.on('data', (chunk) => {
                 data += chunk;
+                logDebug('API', 'Receiving data chunk', {
+                    operationId,
+                    chunkSize: chunk.length,
+                    totalSize: data.length
+                });
             });
             
             res.on('end', () => {
                 try {
+                    logDebug('API', 'Response complete', {
+                        operationId,
+                        statusCode: res.statusCode,
+                        responseSize: data.length
+                    });
+                    
                     if (res.statusCode === 200) {
                         const files = JSON.parse(data) as GitHubFile[];
+                        logInfo('API', 'Successfully parsed directory contents', {
+                            operationId,
+                            fileCount: files.length,
+                            files: files.map(f => ({ name: f.name, type: f.type }))
+                        });
                         resolve(files);
                     } else if (res.statusCode === 404) {
                         // Directory doesn't exist, return empty array
+                        logWarn('API', 'Directory not found, returning empty array', {
+                            operationId,
+                            repository,
+                            branch,
+                            path
+                        });
                         resolve([]);
                     } else {
-                        reject(new Error(`HTTP ${res.statusCode}: ${data}`));
+                        const errorMsg = `HTTP ${res.statusCode}: ${data}`;
+                        logError('API', 'API request failed', {
+                            operationId,
+                            statusCode: res.statusCode,
+                            response: data
+                        });
+                        reject(new Error(errorMsg));
                     }
                 } catch (error) {
+                    logError('API', 'Failed to parse API response', {
+                        operationId,
+                        error,
+                        rawData: data.substring(0, 500) + (data.length > 500 ? '...' : '')
+                    });
                     reject(error);
                 }
             });
-        }).on('error', reject);
+        }).on('error', (error) => {
+            logError('API', 'HTTP request error', {
+                operationId,
+                error,
+                url
+            });
+            reject(error);
+        });
     });
 }
 
 async function downloadFile(url: string): Promise<string> {
+    const operationId = generateOperationId();
+    
+    logDebug('DOWNLOAD', 'Starting file download', {
+        operationId,
+        url
+    });
+    
     return new Promise((resolve, reject) => {
         https.get(url, (res) => {
             let data = '';
             
+            logDebug('DOWNLOAD', 'Download response received', {
+                operationId,
+                statusCode: res.statusCode,
+                contentType: res.headers['content-type'],
+                contentLength: res.headers['content-length']
+            });
+            
             res.on('data', (chunk) => {
                 data += chunk;
+                logDebug('DOWNLOAD', 'Receiving download chunk', {
+                    operationId,
+                    chunkSize: chunk.length,
+                    totalDownloaded: data.length
+                });
             });
             
             res.on('end', () => {
+                logDebug('DOWNLOAD', 'Download complete', {
+                    operationId,
+                    statusCode: res.statusCode,
+                    finalSize: data.length
+                });
+                
                 if (res.statusCode === 200) {
+                    logInfo('DOWNLOAD', 'File downloaded successfully', {
+                        operationId,
+                        url,
+                        size: data.length
+                    });
                     resolve(data);
                 } else {
-                    reject(new Error(`HTTP ${res.statusCode}`));
+                    const errorMsg = `HTTP ${res.statusCode}`;
+                    logError('DOWNLOAD', 'Download failed', {
+                        operationId,
+                        url,
+                        statusCode: res.statusCode
+                    });
+                    reject(new Error(errorMsg));
                 }
             });
-        }).on('error', reject);
+        }).on('error', (error) => {
+            logError('DOWNLOAD', 'Download request error', {
+                operationId,
+                url,
+                error
+            });
+            reject(error);
+        });
     });
 }
 
 async function findAndAddAgent() {
+    const operationId = generateOperationId();
+    logInfo('FIND_AGENT', 'Starting find and add agent operation', { operationId });
+    
     const workspaceFolder = getWorkspaceFolder();
-    if (!workspaceFolder) return;
+    if (!workspaceFolder) {
+        logError('FIND_AGENT', 'No workspace folder found', { operationId });
+        return;
+    }
 
     const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
     const repository = config.get<string>('targetRepository') || 'github/awesome-copilot';
     const branch = config.get<string>('branch') || 'main';
+    
+    logDebug('FIND_AGENT', 'Configuration loaded', {
+        operationId,
+        repository,
+        branch,
+        workspaceFolder
+    });
 
     return vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -379,15 +749,30 @@ async function findAndAddAgent() {
                         const metadata = parseAgentMetadata(file.name, content, file.download_url!);
                         agents.push(metadata);
                     } catch (error) {
-                        console.warn(`Failed to parse agent ${file.name}:`, error);
+                        logWarn('FIND_AGENT', 'Failed to parse agent metadata', {
+                            operationId,
+                            fileName: file.name,
+                            error
+                        });
                     }
                 }
             }
 
             if (agents.length === 0) {
+                logWarn('FIND_AGENT', 'No agents found in repository', {
+                    operationId,
+                    repository,
+                    branch
+                });
                 vscode.window.showWarningMessage('No agents found in the target repository.');
                 return;
             }
+            
+            logInfo('FIND_AGENT', 'Agents loaded successfully', {
+                operationId,
+                agentCount: agents.length,
+                agents: agents.map(a => ({ name: a.name, model: a.model }))
+            });
 
             // Show agent picker
             const quickPickItems = agents.map(agent => ({
@@ -404,17 +789,38 @@ async function findAndAddAgent() {
             });
 
             if (selectedItem) {
+                logInfo('FIND_AGENT', 'Agent selected by user', {
+                    operationId,
+                    selectedAgent: selectedItem.agent.name
+                });
                 await addAgentToProject(selectedItem.agent, workspaceFolder, repository, branch);
+            } else {
+                logWarn('FIND_AGENT', 'No agent selected by user', { operationId });
             }
         } catch (error) {
+            logError('FIND_AGENT', 'Failed to load agents', { operationId, error });
             vscode.window.showErrorMessage(`Failed to load agents: ${error}`);
         }
     });
 }
 
 function parseAgentMetadata(filename: string, content: string, downloadUrl: string): AgentMetadata {
+    const operationId = generateOperationId();
+    logDebug('PARSE_AGENT', 'Starting agent metadata parsing', {
+        operationId,
+        filename,
+        contentLength: content.length,
+        downloadUrl
+    });
+    
     const name = filename.replace('.agent.md', '').replace(/-/g, ' ')
         .split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    
+    logDebug('PARSE_AGENT', 'Generated agent name', {
+        operationId,
+        filename,
+        generatedName: name
+    });
     
     // Extract frontmatter
     const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
@@ -422,19 +828,38 @@ function parseAgentMetadata(filename: string, content: string, downloadUrl: stri
     let model: string | undefined;
     let tools: string[] | undefined;
 
+    logDebug('PARSE_AGENT', 'Frontmatter extraction', {
+        operationId,
+        hasFrontmatter: !!frontmatterMatch,
+        frontmatterLength: frontmatterMatch ? frontmatterMatch[1].length : 0
+    });
+
     if (frontmatterMatch) {
         const frontmatter = frontmatterMatch[1];
+        
+        logDebug('PARSE_AGENT', 'Processing frontmatter', {
+            operationId,
+            frontmatter: frontmatter.substring(0, 200) + (frontmatter.length > 200 ? '...' : '')
+        });
         
         // Parse description
         const descMatch = frontmatter.match(/description:\s*['"]([^'"]+)['"]/);
         if (descMatch) {
             description = descMatch[1];
+            logDebug('PARSE_AGENT', 'Description parsed', {
+                operationId,
+                description
+            });
         }
 
         // Parse model
         const modelMatch = frontmatter.match(/model:\s*['"]?([^'"\s]+)['"]?/);
         if (modelMatch) {
             model = modelMatch[1];
+            logDebug('PARSE_AGENT', 'Model parsed', {
+                operationId,
+                model
+            });
         }
 
         // Parse tools array
@@ -444,10 +869,20 @@ function parseAgentMetadata(filename: string, content: string, downloadUrl: stri
             tools = toolsStr.split(',')
                 .map(tool => tool.trim().replace(/['"]/g, ''))
                 .filter(tool => tool.length > 0);
+            logDebug('PARSE_AGENT', 'Tools parsed', {
+                operationId,
+                tools,
+                toolsCount: tools.length
+            });
         }
+    } else {
+        logWarn('PARSE_AGENT', 'No frontmatter found in agent file', {
+            operationId,
+            filename
+        });
     }
 
-    return {
+    const result = {
         name,
         filename,
         description,
@@ -455,26 +890,62 @@ function parseAgentMetadata(filename: string, content: string, downloadUrl: stri
         tools,
         downloadUrl
     };
+    
+    logInfo('PARSE_AGENT', 'Agent metadata parsing completed', {
+        operationId,
+        result
+    });
+    
+    return result;
 }
 
 async function addAgentToProject(agent: AgentMetadata, workspaceFolder: string, repository: string, branch: string) {
+    const operationId = generateOperationId();
+    logInfo('ADD_AGENT', 'Starting add agent to project', {
+        operationId,
+        agentName: agent.name,
+        filename: agent.filename,
+        repository,
+        branch
+    });
+    
     try {
         // Ensure agents directory exists
         const agentsDir = path.join(workspaceFolder, '.github', 'agents');
         if (!fs.existsSync(agentsDir)) {
+            logDebug('ADD_AGENT', 'Creating agents directory', {
+                operationId,
+                agentsDir
+            });
             fs.mkdirSync(agentsDir, { recursive: true });
+        } else {
+            logDebug('ADD_AGENT', 'Agents directory already exists', {
+                operationId,
+                agentsDir
+            });
         }
 
         // Download the agent content
+        logDebug('ADD_AGENT', 'Downloading agent content', {
+            operationId,
+            downloadUrl: agent.downloadUrl
+        });
+        
         const content = await downloadFile(agent.downloadUrl);
         
         // Add attribution header
-        const attribution = `<!-- Synced from: https://github.com/${repository}/blob/${branch}/agents/${agent.filename} -->\n`;
+        const attribution = createAttributionComment(repository, branch, `agents/${agent.filename}`);
         const finalContent = attribution + content;
 
         // Write to local file
         const localPath = path.join(agentsDir, agent.filename);
         fs.writeFileSync(localPath, finalContent);
+        
+        logInfo('ADD_AGENT', 'Agent file written successfully', {
+            operationId,
+            localPath,
+            contentLength: finalContent.length
+        });
 
         // Show success message with option to open the file
         const action = await vscode.window.showInformationMessage(
@@ -482,16 +953,35 @@ async function addAgentToProject(agent: AgentMetadata, workspaceFolder: string, 
             'Open File'
         );
 
+        logInfo('ADD_AGENT', 'User notification shown', {
+            operationId,
+            userAction: action
+        });
+
         if (action === 'Open File') {
+            logDebug('ADD_AGENT', 'Opening agent file for user', {
+                operationId,
+                localPath
+            });
             const document = await vscode.workspace.openTextDocument(localPath);
             await vscode.window.showTextDocument(document);
         }
+        
+        logInfo('ADD_AGENT', 'Add agent to project completed successfully', { operationId });
     } catch (error) {
+        logError('ADD_AGENT', 'Failed to add agent to project', { operationId, error });
         vscode.window.showErrorMessage(`Failed to add agent: ${error}`);
     }
 }
 
 function parsePromptMetadata(filename: string, content: string, downloadUrl: string): PromptMetadata {
+    const operationId = generateOperationId();
+    logDebug('PARSE_PROMPT', 'Starting prompt metadata parsing', {
+        operationId,
+        filename,
+        contentLength: content.length
+    });
+    
     const name = filename.replace('.prompt.md', '').replace(/-/g, ' ')
         .split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     
@@ -500,6 +990,11 @@ function parsePromptMetadata(filename: string, content: string, downloadUrl: str
     let description = 'No description available';
     let category: string | undefined;
     let tags: string[] | undefined;
+
+    logDebug('PARSE_PROMPT', 'Frontmatter extraction result', {
+        operationId,
+        hasFrontmatter: !!frontmatterMatch
+    });
 
     if (frontmatterMatch) {
         const frontmatter = frontmatterMatch[1];
@@ -524,9 +1019,16 @@ function parsePromptMetadata(filename: string, content: string, downloadUrl: str
                 .map(tag => tag.trim().replace(/['"]/, ''))
                 .filter(tag => tag.length > 0);
         }
+        
+        logDebug('PARSE_PROMPT', 'Parsed prompt metadata', {
+            operationId,
+            description,
+            category,
+            tags
+        });
     }
 
-    return {
+    const result = {
         name,
         filename,
         description,
@@ -534,9 +1036,23 @@ function parsePromptMetadata(filename: string, content: string, downloadUrl: str
         tags,
         downloadUrl
     };
+    
+    logInfo('PARSE_PROMPT', 'Prompt metadata parsing completed', {
+        operationId,
+        result
+    });
+    
+    return result;
 }
 
 function parseInstructionMetadata(filename: string, content: string, downloadUrl: string): InstructionMetadata {
+    const operationId = generateOperationId();
+    logDebug('PARSE_INSTRUCTION', 'Starting instruction metadata parsing', {
+        operationId,
+        filename,
+        contentLength: content.length
+    });
+    
     const name = filename.replace('.instructions.md', '').replace(/-/g, ' ')
         .split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     
@@ -545,6 +1061,11 @@ function parseInstructionMetadata(filename: string, content: string, downloadUrl
     let description = 'No description available';
     let scope: string | undefined;
     let language: string | undefined;
+
+    logDebug('PARSE_INSTRUCTION', 'Frontmatter extraction result', {
+        operationId,
+        hasFrontmatter: !!frontmatterMatch
+    });
 
     if (frontmatterMatch) {
         const frontmatter = frontmatterMatch[1];
@@ -566,9 +1087,16 @@ function parseInstructionMetadata(filename: string, content: string, downloadUrl
         if (languageMatch) {
             language = languageMatch[1];
         }
+        
+        logDebug('PARSE_INSTRUCTION', 'Parsed instruction metadata', {
+            operationId,
+            description,
+            scope,
+            language
+        });
     }
 
-    return {
+    const result = {
         name,
         filename,
         description,
@@ -576,6 +1104,13 @@ function parseInstructionMetadata(filename: string, content: string, downloadUrl
         language,
         downloadUrl
     };
+    
+    logInfo('PARSE_INSTRUCTION', 'Instruction metadata parsing completed', {
+        operationId,
+        result
+    });
+    
+    return result;
 }
 
 function parseSkillMetadata(filename: string, content: string, downloadUrl: string): SkillMetadata {
@@ -632,7 +1167,7 @@ async function addPromptToProject(prompt: PromptMetadata, workspaceFolder: strin
         const content = await downloadFile(prompt.downloadUrl);
         
         // Add attribution header
-        const attribution = `<!-- Synced from: https://github.com/${repository}/blob/${branch}/prompts/${prompt.filename} -->\n`;
+        const attribution = createAttributionComment(repository, branch, `prompts/${prompt.filename}`);
         const finalContent = attribution + content;
 
         // Write to local file
@@ -666,7 +1201,7 @@ async function addInstructionToProject(instruction: InstructionMetadata, workspa
         const content = await downloadFile(instruction.downloadUrl);
         
         // Add attribution header
-        const attribution = `<!-- Synced from: https://github.com/${repository}/blob/${branch}/instructions/${instruction.filename} -->\n`;
+        const attribution = createAttributionComment(repository, branch, `instructions/${instruction.filename}`);
         const finalContent = attribution + content;
 
         // Write to local file
@@ -700,7 +1235,7 @@ async function addSkillToProject(skill: SkillMetadata, workspaceFolder: string, 
         const content = await downloadFile(skill.downloadUrl);
         
         // Add attribution header
-        const attribution = `<!-- Synced from: https://github.com/${repository}/blob/${branch}/skills/${skill.filename} -->\n`;
+        const attribution = createAttributionComment(repository, branch, `skills/${skill.filename}`);
         const finalContent = attribution + content;
 
         // Write to local file
@@ -723,8 +1258,14 @@ async function addSkillToProject(skill: SkillMetadata, workspaceFolder: string, 
 }
 
 async function findAndAddPrompt() {
+    const operationId = generateOperationId();
+    logInfo('FIND_PROMPT', 'Starting find and add prompt operation', { operationId });
+    
     const workspaceFolder = getWorkspaceFolder();
-    if (!workspaceFolder) return;
+    if (!workspaceFolder) {
+        logError('FIND_PROMPT', 'No workspace folder found', { operationId });
+        return;
+    }
 
     const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
     const repository = config.get<string>('targetRepository') || 'github/awesome-copilot';
@@ -748,7 +1289,11 @@ async function findAndAddPrompt() {
                         const metadata = parsePromptMetadata(file.name, content, file.download_url!);
                         prompts.push(metadata);
                     } catch (error) {
-                        console.warn(`Failed to parse prompt ${file.name}:`, error);
+                        logWarn('FIND_PROMPT', 'Failed to parse prompt metadata', {
+                            operationId,
+                            fileName: file.name,
+                            error
+                        });
                     }
                 }
             }
@@ -782,8 +1327,14 @@ async function findAndAddPrompt() {
 }
 
 async function findAndAddInstruction() {
+    const operationId = generateOperationId();
+    logInfo('FIND_INSTRUCTION', 'Starting find and add instruction operation', { operationId });
+    
     const workspaceFolder = getWorkspaceFolder();
-    if (!workspaceFolder) return;
+    if (!workspaceFolder) {
+        logError('FIND_INSTRUCTION', 'No workspace folder found', { operationId });
+        return;
+    }
 
     const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
     const repository = config.get<string>('targetRepository') || 'github/awesome-copilot';
@@ -807,7 +1358,11 @@ async function findAndAddInstruction() {
                         const metadata = parseInstructionMetadata(file.name, content, file.download_url!);
                         instructions.push(metadata);
                     } catch (error) {
-                        console.warn(`Failed to parse instruction ${file.name}:`, error);
+                        logWarn('FIND_INSTRUCTION', 'Failed to parse instruction metadata', {
+                            operationId,
+                            fileName: file.name,
+                            error
+                        });
                     }
                 }
             }
@@ -841,8 +1396,14 @@ async function findAndAddInstruction() {
 }
 
 async function findAndAddSkill() {
+    const operationId = generateOperationId();
+    logInfo('FIND_SKILL', 'Starting find and add skill operation', { operationId });
+    
     const workspaceFolder = getWorkspaceFolder();
-    if (!workspaceFolder) return;
+    if (!workspaceFolder) {
+        logError('FIND_SKILL', 'No workspace folder found', { operationId });
+        return;
+    }
 
     const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
     const repository = config.get<string>('targetRepository') || 'github/awesome-copilot';
@@ -866,7 +1427,11 @@ async function findAndAddSkill() {
                         const metadata = parseSkillMetadata(file.name, content, file.download_url!);
                         skills.push(metadata);
                     } catch (error) {
-                        console.warn(`Failed to parse skill ${file.name}:`, error);
+                        logWarn('FIND_SKILL', 'Failed to parse skill metadata', {
+                            operationId,
+                            fileName: file.name,
+                            error
+                        });
                     }
                 }
             }
@@ -899,4 +1464,6 @@ async function findAndAddSkill() {
     });
 }
 
-export function deactivate() {}
+export function deactivate() {
+    logInfo('EXTENSION', 'Extension is being deactivated');
+}

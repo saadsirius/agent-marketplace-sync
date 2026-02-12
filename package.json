@@ -2,7 +2,7 @@
   "name": "vscode-awesome-copilot",
   "displayName": "Awesome Copilot Sync",
   "description": "Sync GitHub Copilot agents, prompts, instructions, and skills from awesome-copilot repositories",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "gardltio",
   "license": "MIT",
   "repository": {
