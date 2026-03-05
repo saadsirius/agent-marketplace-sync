@@ -210,10 +210,10 @@ describe('VS Code Integration Functions', () => {
     });
 
     test('should show warning messages', () => {
-      mockVSCode.window.showWarningMessage('No agents found in the target repository.');
+      mockVSCode.window.showWarningMessage('No agents found in the marketplace.');
       
       expect(mockVSCode.window.showWarningMessage).toHaveBeenCalledWith(
-        'No agents found in the target repository.'
+        'No agents found in the marketplace.'
       );
     });
   });
@@ -222,16 +222,14 @@ describe('VS Code Integration Functions', () => {
     test('should register all extension commands', () => {
       const mockCommands = [
         'awesome-copilot-sync.configure',
-        'awesome-copilot-sync.sync',
-        'awesome-copilot-sync.syncAgents',
-        'awesome-copilot-sync.syncPrompts',
-        'awesome-copilot-sync.syncInstructions',
-        'awesome-copilot-sync.syncSkills',
+        'awesome-copilot-sync.removeRepository',
         'awesome-copilot-sync.initializeStructure',
         'awesome-copilot-sync.findAndAddAgent',
-        'awesome-copilot-sync.findAndAddPrompt',
         'awesome-copilot-sync.findAndAddInstruction',
-        'awesome-copilot-sync.findAndAddSkill'
+        'awesome-copilot-sync.findAndAddSkill',
+        'awesome-copilot-sync.findAndAddPlugin',
+        'awesome-copilot-sync.clearCache',
+        'awesome-copilot-sync.showCacheStats'
       ];
       
       mockCommands.forEach(command => {

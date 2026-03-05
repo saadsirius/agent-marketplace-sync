@@ -2,6 +2,26 @@
 
 All notable changes to the "awesome-copilot-sync" extension will be documented in this file.
 
+## [1.2.1] - 2026-03-05
+
+### Fixed
+- Minor stability improvements and bug fixes
+
+## [1.2.0] - 2026-03-05
+
+### Added
+- **Marketplace Sync**: New `Sync Marketplace` command to pull the latest marketplace index and resources
+- **Find and Add Plugin**: New command to discover and install plugins from the marketplace
+
+### Changed
+- Renamed "Target Repository" to "Marketplace" throughout the UI to align with Copilot CLI terminology
+- Unified disk caching strategy for improved performance and reliability
+- Removed individual `Sync * Only` commands in favor of the unified `Sync Marketplace` flow
+
+### Fixed
+- Cache loading and invalidation issues
+- Various stability improvements
+
 ## [1.0.0] - 2026-02-09
 
 ### Added
@@ -19,7 +39,6 @@ All notable changes to the "awesome-copilot-sync" extension will be documented i
 ### Features
 - **Configure Repository**: Set custom target repositories and branches
 - **Initialize Structure**: Create proper `.github/` directory structure
-- **Sync All Resources**: Download everything in one operation
 - **Selective Sync**: Choose specific resource types to sync
 - **Attribution Tracking**: Automatic source attribution in synced files
 - **Progress Feedback**: Real-time sync progress with cancellation support

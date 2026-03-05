@@ -1,4 +1,7 @@
 // Mock VS Code API
+/// <reference types="jest" />
+import { jest } from '@jest/globals';
+
 (global as any).vscode = {
   window: {
     showInputBox: jest.fn(),

@@ -101,7 +101,7 @@ describe('File Operations and Sync Functions', () => {
     });
 
     test('should handle different resource types in attribution', () => {
-      const resourceTypes = ['agents', 'prompts', 'instructions', 'skills'];
+      const resourceTypes = ['agents', 'instructions', 'skills'];
       const repository = 'user/custom-repo';
       const branch = 'develop';
       
@@ -121,7 +121,6 @@ describe('File Operations and Sync Functions', () => {
         '.github',
         '.github/agents',
         '.github/instructions',
-        '.github/prompts', 
         '.github/skills'
       ];
       
@@ -233,8 +232,7 @@ This file provides instructions to GitHub Copilot for working with this reposito
       const invalidFiles = [
         'readme.md',
         'agent.txt',
-        'nodejs.agent',
-        'test.prompt.md'
+        'nodejs.agent'
       ];
       
       validAgentFiles.forEach(fileName => {
@@ -243,17 +241,6 @@ This file provides instructions to GitHub Copilot for working with this reposito
       
       invalidFiles.forEach(fileName => {
         expect(fileName.endsWith('.agent.md')).toBe(false);
-      });
-    });
-
-    test('should validate prompt file extensions', () => {
-      const validPromptFiles = [
-        'code-review.prompt.md',
-        'debugging-help.prompt.md'
-      ];
-      
-      validPromptFiles.forEach(fileName => {
-        expect(fileName.endsWith('.prompt.md')).toBe(true);
       });
     });
 

@@ -33,7 +33,7 @@ my-project/
 ```
 
 ### 2. Configure and Sync
-Run: `Awesome Copilot: Configure Repository` and `Awesome Copilot: Sync All Resources`
+Run: `Awesome Copilot: Configure Repository`, then use individual sync commands (e.g., `Awesome Copilot: Sync Agents Only`)
 
 ```
 my-project/

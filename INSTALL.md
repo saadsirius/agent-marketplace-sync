@@ -62,10 +62,10 @@ your-project/
 └── AGENTS.md
 ```
 
-### Step 2: Configure Repository
+### Step 2: Configure Marketplace
 
 1. Press `Ctrl+Shift+P`
-2. Type: `Awesome Copilot: Configure Repository`
+2. Type: `Awesome Copilot: Configure Marketplace`
 3. Enter the repository to sync from (default: `github/awesome-copilot`)
 4. Enter the branch to sync from (default: `main`)
 
@@ -73,17 +73,14 @@ your-project/
 - `github/awesome-copilot` - The main community collection
 - Your own repository following the same structure
 
-### Step 3: Sync Content
+### Step 3: Find and Add Resources
 
-**Option A: Sync Everything**
-- Command: `Awesome Copilot: Sync All Resources`
-- Downloads all agents, prompts, instructions, and skills
-
-**Option B: Selective Sync**
-- `Awesome Copilot: Sync Agents Only` - Chat agents only
-- `Awesome Copilot: Sync Prompts Only` - Reusable prompts only
-- `Awesome Copilot: Sync Instructions Only` - Coding standards only
-- `Awesome Copilot: Sync Skills Only` - Advanced workflows only
+Use the "Find and Add" commands to discover and install specific resources:
+- `Awesome Copilot: Find and Add Agent` - Discover and add agents
+- `Awesome Copilot: Find and Add Prompt` - Discover and add prompts
+- `Awesome Copilot: Find and Add Instruction` - Discover and add instructions
+- `Awesome Copilot: Find and Add Skill` - Discover and add skills
+- `Awesome Copilot: Find and Add Plugin` - Discover and add plugins
 
 ## 🔧 Configuration
 
@@ -185,7 +182,7 @@ tools: ['codebase']
 - Solution: Check repository name format (owner/repo) and branch name
 
 **"Empty sync results"**  
-- Solution: Target repository may not have the expected directory structure
+- Solution: Your marketplace may not have the expected directory structure
 
 **Files not appearing in Copilot**
 - Solution: Restart VS Code after syncing to reload Copilot configuration

@@ -2,7 +2,7 @@
   "name": "vscode-awesome-copilot",
   "displayName": "Awesome Copilot Sync",
   "description": "Sync GitHub Copilot agents, prompts, instructions, and skills from awesome-copilot repositories",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "publisher": "gardltio",
   "license": "MIT",
   "repository": {
@@ -32,32 +32,17 @@
     "commands": [
       {
         "command": "awesome-copilot-sync.configure",
-        "title": "Configure Repository",
+        "title": "Configure Marketplace",
         "category": "Awesome Copilot"
       },
       {
-        "command": "awesome-copilot-sync.sync",
-        "title": "Sync All Resources",
+        "command": "awesome-copilot-sync.removeRepository",
+        "title": "Remove Repository",
         "category": "Awesome Copilot"
       },
       {
-        "command": "awesome-copilot-sync.syncAgents",
-        "title": "Sync Agents Only",
-        "category": "Awesome Copilot"
-      },
-      {
-        "command": "awesome-copilot-sync.syncPrompts",
-        "title": "Sync Prompts Only",
-        "category": "Awesome Copilot"
-      },
-      {
-        "command": "awesome-copilot-sync.syncInstructions",
-        "title": "Sync Instructions Only",
-        "category": "Awesome Copilot"
-      },
-      {
-        "command": "awesome-copilot-sync.syncSkills",
-        "title": "Sync Skills Only",
+        "command": "awesome-copilot-sync.syncMarketplace",
+        "title": "Sync Marketplace",
         "category": "Awesome Copilot"
       },
       {
@@ -71,11 +56,6 @@
         "category": "Awesome Copilot"
       },
       {
-        "command": "awesome-copilot-sync.findAndAddPrompt",
-        "title": "Find and Add Prompt",
-        "category": "Awesome Copilot"
-      },
-      {
         "command": "awesome-copilot-sync.findAndAddInstruction",
         "title": "Find and Add Instruction",
         "category": "Awesome Copilot"
@@ -83,6 +63,21 @@
       {
         "command": "awesome-copilot-sync.findAndAddSkill",
         "title": "Find and Add Skill",
+        "category": "Awesome Copilot"
+      },
+      {
+        "command": "awesome-copilot-sync.findAndAddPlugin",
+        "title": "Find and Add Plugin",
+        "category": "Awesome Copilot"
+      },
+      {
+        "command": "awesome-copilot-sync.clearCache",
+        "title": "Clear Repository Cache",
+        "category": "Awesome Copilot"
+      },
+      {
+        "command": "awesome-copilot-sync.showCacheStats",
+        "title": "Show Cache Statistics",
         "category": "Awesome Copilot"
       }
     ],
@@ -92,7 +87,7 @@
         "awesome-copilot-sync.targetRepository": {
           "type": "string",
           "default": "github/awesome-copilot",
-          "description": "Target repository to sync from (format: owner/repo)"
+          "description": "Marketplace repository (format: owner/repo) - matches copilot plugin marketplace"
         },
         "awesome-copilot-sync.branch": {
           "type": "string",
@@ -108,35 +103,37 @@
           "type": "boolean",
           "default": false,
           "description": "Check for updates when saving copilot files"
+        },
+        "awesome-copilot-sync.repositories": {
+          "type": "array",
+          "default": [],
+          "description": "List of repositories to sync from. When populated, overrides targetRepository/branch settings.",
+          "items": {
+            "type": "object",
+            "required": ["repository"],
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "Human-readable name for this repository (defaults to owner/repo)"
+              },
+              "repository": {
+                "type": "string",
+                "description": "Repository in owner/repo format"
+              },
+              "branch": {
+                "type": "string",
+                "default": "main",
+                "description": "Branch to sync from"
+              }
+            }
+          }
         }
       }
     },
     "menus": {
-      "explorer/context": [
-        {
-          "command": "awesome-copilot-sync.sync",
-          "group": "navigation",
-          "when": "explorerResourceIsFolder"
-        }
-      ],
       "commandPalette": [
         {
           "command": "awesome-copilot-sync.configure"
-        },
-        {
-          "command": "awesome-copilot-sync.sync"
-        },
-        {
-          "command": "awesome-copilot-sync.syncAgents"
-        },
-        {
-          "command": "awesome-copilot-sync.syncPrompts"
-        },
-        {
-          "command": "awesome-copilot-sync.syncInstructions"
-        },
-        {
-          "command": "awesome-copilot-sync.syncSkills"
         },
         {
           "command": "awesome-copilot-sync.initializeStructure"

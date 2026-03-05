@@ -47,51 +47,6 @@ const parseAgentMetadataTest = (filename: string, content: string, downloadUrl: 
   };
 };
 
-const parsePromptMetadataTest = (filename: string, content: string, downloadUrl: string) => {
-  const name = filename.replace('.prompt.md', '').replace(/-/g, ' ')
-    .split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-  
-  // Extract frontmatter
-  const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
-  let description = 'No description available';
-  let category: string | undefined;
-  let tags: string[] | undefined;
-
-  if (frontmatterMatch) {
-    const frontmatter = frontmatterMatch[1];
-    
-    // Parse description
-    const descMatch = frontmatter.match(/description:\s*['"]([^'"]+)['"]/);
-    if (descMatch) {
-      description = descMatch[1];
-    }
-
-    // Parse category
-    const categoryMatch = frontmatter.match(/category:\s*['"]?([^'"\s]+)['"]?/);
-    if (categoryMatch) {
-      category = categoryMatch[1];
-    }
-
-    // Parse tags array
-    const tagsMatch = frontmatter.match(/tags:\s*\[(.*?)\]/s);
-    if (tagsMatch) {
-      const tagsStr = tagsMatch[1];
-      tags = tagsStr.split(',')
-        .map(tag => tag.trim().replace(/['"]/g, ''))
-        .filter(tag => tag.length > 0);
-    }
-  }
-
-  return {
-    name,
-    filename,
-    description,
-    category,
-    tags,
-    downloadUrl
-  };
-};
-
 const parseInstructionMetadataTest = (filename: string, content: string, downloadUrl: string) => {
   const name = filename.replace('.instructions.md', '').replace(/-/g, ' ')
     .split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -254,52 +209,6 @@ tools: ["tool1", "tool2", "tool3"]
       const result = parseAgentMetadataTest(filename, content, downloadUrl);
 
       expect(result.tools).toEqual(['tool1', 'tool2', 'tool3']);
-    });
-  });
-
-  describe('parsePromptMetadata', () => {
-    test('should parse prompt metadata with full frontmatter', () => {
-      const filename = 'code-review.prompt.md';
-      const content = `---
-description: "Code review prompt for better code quality"
-category: "development"
-tags: ["code-review", "quality", "best-practices"]
----
-
-# Code Review Prompt
-
-Please review the following code...`;
-      const downloadUrl = 'https://github.com/test/repo/prompt.md';
-
-      const result = parsePromptMetadataTest(filename, content, downloadUrl);
-
-      expect(result).toEqual({
-        name: 'Code Review',
-        filename: 'code-review.prompt.md',
-        description: 'Code review prompt for better code quality',
-        category: 'development',
-        tags: ['code-review', 'quality', 'best-practices'],
-        downloadUrl: 'https://github.com/test/repo/prompt.md'
-      });
-    });
-
-    test('should handle prompt without frontmatter', () => {
-      const filename = 'simple-prompt.prompt.md';
-      const content = `# Simple Prompt
-
-This is a simple prompt.`;
-      const downloadUrl = 'https://github.com/test/repo/simple.md';
-
-      const result = parsePromptMetadataTest(filename, content, downloadUrl);
-
-      expect(result).toEqual({
-        name: 'Simple Prompt',
-        filename: 'simple-prompt.prompt.md',
-        description: 'No description available',
-        category: undefined,
-        tags: undefined,
-        downloadUrl: 'https://github.com/test/repo/simple.md'
-      });
     });
   });
 
