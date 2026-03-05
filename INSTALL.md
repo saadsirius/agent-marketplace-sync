@@ -62,10 +62,10 @@ your-project/
 └── AGENTS.md
 ```
 
-### Step 2: Configure Repository
+### Step 2: Configure Marketplace
 
 1. Press `Ctrl+Shift+P`
-2. Type: `Awesome Copilot: Configure Repository`
+2. Type: `Awesome Copilot: Configure Marketplace`
 3. Enter the repository to sync from (default: `github/awesome-copilot`)
 4. Enter the branch to sync from (default: `main`)
 
@@ -182,7 +182,7 @@ tools: ['codebase']
 - Solution: Check repository name format (owner/repo) and branch name
 
 **"Empty sync results"**  
-- Solution: Target repository may not have the expected directory structure
+- Solution: Your marketplace may not have the expected directory structure
 
 **Files not appearing in Copilot**
 - Solution: Restart VS Code after syncing to reload Copilot configuration

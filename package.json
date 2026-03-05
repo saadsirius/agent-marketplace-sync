@@ -32,7 +32,7 @@
     "commands": [
       {
         "command": "awesome-copilot-sync.configure",
-        "title": "Configure Repository",
+        "title": "Configure Marketplace",
         "category": "Awesome Copilot"
       },
       {
@@ -87,7 +87,7 @@
         "awesome-copilot-sync.targetRepository": {
           "type": "string",
           "default": "github/awesome-copilot",
-          "description": "Target repository to sync from (format: owner/repo)"
+          "description": "Marketplace repository (format: owner/repo) - matches copilot plugin marketplace"
         },
         "awesome-copilot-sync.branch": {
           "type": "string",

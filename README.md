@@ -44,7 +44,7 @@ A VS Code extension that automatically syncs GitHub Copilot agents, prompts, ins
 
 1. **Open VS Code** with your project folder
 2. **Initialize Structure**: `Ctrl+Shift+P` → `Awesome Copilot: Initialize Project Structure`
-3. **Configure Repository**: `Ctrl+Shift+P` → `Awesome Copilot: Configure Repository`
+3. **Configure Marketplace**: `Ctrl+Shift+P` → `Awesome Copilot: Configure Marketplace`
 ## 🔍 Find & Add Workflow
 
 For more targeted resource management, use the Find & Add commands:
@@ -74,7 +74,7 @@ For more targeted resource management, use the Find & Add commands:
 ### Bulk Operations
 | Command | Description |
 |---------|-------------|
-| `Awesome Copilot: Configure Repository` | Set target repository and branch |
+| `Awesome Copilot: Configure Marketplace` | Set marketplace and branch |
 | `Awesome Copilot: Initialize Project Structure` | Create `.github/` directory structure |
 | `Awesome Copilot: Find and Add Agent` | Discover and install agents from repository |
 | `Awesome Copilot: Find and Add Prompt` | Discover and install prompts from repository |

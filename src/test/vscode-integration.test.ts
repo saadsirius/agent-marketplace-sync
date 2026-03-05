@@ -210,10 +210,10 @@ describe('VS Code Integration Functions', () => {
     });
 
     test('should show warning messages', () => {
-      mockVSCode.window.showWarningMessage('No agents found in the target repository.');
+      mockVSCode.window.showWarningMessage('No agents found in the marketplace.');
       
       expect(mockVSCode.window.showWarningMessage).toHaveBeenCalledWith(
-        'No agents found in the target repository.'
+        'No agents found in the marketplace.'
       );
     });
   });

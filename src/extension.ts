@@ -528,7 +528,7 @@ async function migrateRepositorySettings(): Promise<void> {
     await config.update('repositories', migrated, vscode.ConfigurationTarget.Workspace);
     logInfo('MIGRATE', 'Migrated legacy targetRepository to repositories array', { repository: legacyRepo, branch: legacyBranch });
     vscode.window.showInformationMessage(
-        `Awesome Copilot: Migrated "${legacyRepo}" to the new multi-repo settings. Use "Configure Repository" to add more.`
+        `Awesome Copilot: Migrated "${legacyRepo}" to the new multi-marketplace settings. Use "Configure Marketplace" to add more.`
     );
 }
 
@@ -929,7 +929,7 @@ async function findAndAddAgent() {
 
     if (agents.length === 0) {
         logWarn('FIND_AGENT', 'No agents found in repository', { operationId, repository, branch });
-        vscode.window.showWarningMessage('No agents found in the target repository.');
+        vscode.window.showWarningMessage('No agents found in the marketplace.');
         return;
     }
 
@@ -1451,7 +1451,7 @@ async function findAndAddPrompt() {
     }
 
     if (prompts.length === 0) {
-        vscode.window.showWarningMessage('No prompts found in the target repository.');
+        vscode.window.showWarningMessage('No prompts found in the marketplace.');
         return;
     }
 
@@ -1503,7 +1503,7 @@ async function findAndAddInstruction() {
     }
 
     if (instructions.length === 0) {
-        vscode.window.showWarningMessage('No instructions found in the target repository.');
+        vscode.window.showWarningMessage('No instructions found in the marketplace.');
         return;
     }
 
@@ -1555,7 +1555,7 @@ async function findAndAddSkill() {
     }
 
     if (skills.length === 0) {
-        vscode.window.showWarningMessage('No skills found in the target repository.');
+        vscode.window.showWarningMessage('No skills found in the marketplace.');
         return;
     }
 
@@ -1770,7 +1770,7 @@ async function findAndAddPlugin() {
     }
 
     if (plugins.length === 0) {
-        vscode.window.showWarningMessage('No plugins found in the target repository.');
+        vscode.window.showWarningMessage('No plugins found in the marketplace.');
         return;
     }
 
