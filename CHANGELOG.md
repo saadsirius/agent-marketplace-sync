@@ -2,6 +2,21 @@
 
 All notable changes to the "awesome-copilot-sync" extension will be documented in this file.
 
+## [1.2.0] - 2026-03-05
+
+### Added
+- **Marketplace Sync**: New `Sync Marketplace` command to pull the latest marketplace index and resources
+- **Find and Add Plugin**: New command to discover and install plugins from the marketplace
+
+### Changed
+- Renamed "Target Repository" to "Marketplace" throughout the UI to align with Copilot CLI terminology
+- Unified disk caching strategy for improved performance and reliability
+- Removed individual `Sync * Only` commands in favor of the unified `Sync Marketplace` flow
+
+### Fixed
+- Cache loading and invalidation issues
+- Various stability improvements
+
 ## [1.0.0] - 2026-02-09
 
 ### Added
