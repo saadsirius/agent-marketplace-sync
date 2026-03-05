@@ -73,13 +73,14 @@ your-project/
 - `github/awesome-copilot` - The main community collection
 - Your own repository following the same structure
 
-### Step 3: Sync Content
+### Step 3: Find and Add Resources
 
-**Selective Sync**
-- `Awesome Copilot: Sync Agents Only` - Chat agents only
-- `Awesome Copilot: Sync Prompts Only` - Reusable prompts only
-- `Awesome Copilot: Sync Instructions Only` - Coding standards only
-- `Awesome Copilot: Sync Skills Only` - Advanced workflows only
+Use the "Find and Add" commands to discover and install specific resources:
+- `Awesome Copilot: Find and Add Agent` - Discover and add agents
+- `Awesome Copilot: Find and Add Prompt` - Discover and add prompts
+- `Awesome Copilot: Find and Add Instruction` - Discover and add instructions
+- `Awesome Copilot: Find and Add Skill` - Discover and add skills
+- `Awesome Copilot: Find and Add Plugin` - Discover and add plugins
 
 ## 🔧 Configuration
 

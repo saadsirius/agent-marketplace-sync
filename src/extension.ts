@@ -381,10 +381,6 @@ export function activate(context: vscode.ExtensionContext) {
     const commands = [
         vscode.commands.registerCommand('awesome-copilot-sync.configure', configureRepository),
         vscode.commands.registerCommand('awesome-copilot-sync.removeRepository', removeRepository),
-        vscode.commands.registerCommand('awesome-copilot-sync.syncAgents', () => syncResourceType('agents')),
-        vscode.commands.registerCommand('awesome-copilot-sync.syncPrompts', () => syncResourceType('prompts')),
-        vscode.commands.registerCommand('awesome-copilot-sync.syncInstructions', () => syncResourceType('instructions')),
-        vscode.commands.registerCommand('awesome-copilot-sync.syncSkills', () => syncResourceType('skills')),
         vscode.commands.registerCommand('awesome-copilot-sync.initializeStructure', initializeStructure),
         vscode.commands.registerCommand('awesome-copilot-sync.findAndAddAgent', findAndAddAgent),
         vscode.commands.registerCommand('awesome-copilot-sync.findAndAddPrompt', findAndAddPrompt),
@@ -400,8 +396,7 @@ export function activate(context: vscode.ExtensionContext) {
     logInfo('EXTENSION', 'Registered commands', {
         commandCount: commands.length,
         commands: [
-            'configure', 'removeRepository', 'syncAgents', 'syncPrompts', 'syncInstructions',
-            'syncSkills', 'initializeStructure', 'findAndAddAgent', 'findAndAddPrompt',
+            'configure', 'removeRepository', 'initializeStructure', 'findAndAddAgent', 'findAndAddPrompt',
             'findAndAddInstruction', 'findAndAddSkill', 'findAndAddPlugin', 'clearCache', 'showCacheStats'
         ]
     });
@@ -689,141 +684,9 @@ This file provides instructions to GitHub Copilot for working with this reposito
     }
 }
 
-async function syncResourceType(resourceType: 'agents' | 'prompts' | 'instructions' | 'skills') {
-    const operationId = generateOperationId();
-    logInfo('SYNC_RESOURCE', 'Starting resource type sync', { operationId, resourceType });
 
-    const repoConfig = await selectRepository();
-    if (!repoConfig) {
-        logWarn('SYNC_RESOURCE', 'Repository selection cancelled', { operationId });
-        return;
-    }
 
-    return vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: `Syncing ${resourceType} from ${repoConfig.repository}`,
-        cancellable: false
-    }, async () => {
-        const result = await syncResourceTypeInternal(resourceType, repoConfig.repository, repoConfig.branch);
 
-        logInfo('SYNC_RESOURCE', 'Resource type sync completed', {
-            operationId,
-            resourceType,
-            success: result.success,
-            filesCount: result.files.length,
-            errorsCount: result.errors.length
-        });
-
-        if (result.success) {
-            vscode.window.showInformationMessage(
-                `${resourceType} sync completed! ${result.files.length} files processed.`
-            );
-        } else {
-            vscode.window.showErrorMessage(
-                `${resourceType} sync failed: ${result.errors.join(', ')}`
-            );
-        }
-
-        return result;
-    });
-}
-
-async function syncResourceTypeInternal(resourceType: string, repository: string, branch: string): Promise<SyncStatus> {
-    const operationId = generateOperationId();
-    logInfo('SYNC_INTERNAL', 'Starting internal resource sync', {
-        operationId,
-        resourceType
-    });
-
-    const workspaceFolder = getWorkspaceFolder();
-    if (!workspaceFolder) {
-        logError('SYNC_INTERNAL', 'No workspace folder found', { operationId, resourceType });
-        return { success: false, files: [], errors: ['No workspace folder found'] };
-    }
-
-    logDebug('SYNC_INTERNAL', 'Sync configuration', {
-        operationId,
-        resourceType,
-        repository,
-        branch,
-        workspaceFolder
-    });
-
-    try {
-        logDebug('SYNC_INTERNAL', 'Fetching directory contents', {
-            operationId,
-            repository,
-            branch,
-            resourceType
-        });
-        
-        const files = await fetchDirectoryContents(repository, branch, resourceType);
-        const syncedFiles: string[] = [];
-        const errors: string[] = [];
-        
-        logInfo('SYNC_INTERNAL', 'Directory contents fetched', {
-            operationId,
-            resourceType,
-            fileCount: files.length,
-            files: files.map(f => ({ name: f.name, type: f.type }))
-        });
-
-        // Ensure target directory exists
-        const targetDir = path.join(workspaceFolder, '.github', resourceType);
-        if (!fs.existsSync(targetDir)) {
-            logDebug('SYNC_INTERNAL', 'Creating target directory', {
-                operationId,
-                targetDir
-            });
-            fs.mkdirSync(targetDir, { recursive: true });
-        } else {
-            logDebug('SYNC_INTERNAL', 'Target directory already exists', {
-                operationId,
-                targetDir
-            });
-        }
-
-        for (const file of files) {
-            try {
-                if (file.type === 'file') {
-                    const content = await downloadFile(file.download_url!);
-                    const localPath = path.join(targetDir, file.name);
-                    
-                    // Add attribution header to the content
-                    const attribution = createAttributionComment(repository, branch, file.path);
-                    const finalContent = attribution + content;
-                    
-                    fs.writeFileSync(localPath, finalContent);
-                    syncedFiles.push(file.name);
-                }
-            } catch (error) {
-                errors.push(`Failed to sync ${file.name}: ${error}`);
-            }
-        }
-
-        const result = { 
-            success: errors.length === 0, 
-            files: syncedFiles, 
-            errors 
-        };
-        
-        logInfo('SYNC_INTERNAL', 'Resource sync completed', {
-            operationId,
-            resourceType,
-            result
-        });
-        
-        return result;
-    } catch (error) {
-        const errorMsg = `Failed to fetch ${resourceType}: ${error}`;
-        logError('SYNC_INTERNAL', errorMsg, error);
-        return { 
-            success: false, 
-            files: [], 
-            errors: [errorMsg] 
-        };
-    }
-}
 
 function getWorkspaceFolder(): string | undefined {
     const workspaceFolders = vscode.workspace.workspaceFolders;

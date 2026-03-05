@@ -41,26 +41,6 @@
         "category": "Awesome Copilot"
       },
       {
-        "command": "awesome-copilot-sync.syncAgents",
-        "title": "Sync Agents Only",
-        "category": "Awesome Copilot"
-      },
-      {
-        "command": "awesome-copilot-sync.syncPrompts",
-        "title": "Sync Prompts Only",
-        "category": "Awesome Copilot"
-      },
-      {
-        "command": "awesome-copilot-sync.syncInstructions",
-        "title": "Sync Instructions Only",
-        "category": "Awesome Copilot"
-      },
-      {
-        "command": "awesome-copilot-sync.syncSkills",
-        "title": "Sync Skills Only",
-        "category": "Awesome Copilot"
-      },
-      {
         "command": "awesome-copilot-sync.initializeStructure",
         "title": "Initialize Project Structure",
         "category": "Awesome Copilot"

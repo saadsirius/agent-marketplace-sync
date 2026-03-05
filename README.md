@@ -76,9 +76,9 @@ For more targeted resource management, use the Find & Add commands:
 |---------|-------------|
 | `Awesome Copilot: Configure Repository` | Set target repository and branch |
 | `Awesome Copilot: Initialize Project Structure` | Create `.github/` directory structure |
-| `Awesome Copilot: Sync Agents Only` | Download only `.agent.md` files |
-| `Awesome Copilot: Sync Prompts Only` | Download only `.prompt.md` files |
-| `Awesome Copilot: Sync Instructions Only` | Download only `.instructions.md` files |
+| `Awesome Copilot: Find and Add Agent` | Discover and install agents from repository |
+| `Awesome Copilot: Find and Add Prompt` | Discover and install prompts from repository |
+| `Awesome Copilot: Find and Add Instruction` | Discover and install instructions from repository |
 | `Awesome Copilot: Sync Skills Only` | Download only skill folders |
 
 ### Find & Add Individual Resources
