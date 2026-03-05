@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as https from 'https';
+import * as os from 'os';
 
 // Logging utility functions
 function logInfo(operation: string, message: string, data?: any) {
@@ -99,31 +100,46 @@ const repositoryCache = new RepositoryDataCache();
 async function getCachedAgentMetadata(repository: string, branch: string): Promise<AgentMetadata[]> {
     const cacheKey = 'parsed-agents';
     const cached = repositoryCache.get<AgentMetadata[]>(repository, branch, cacheKey);
-    
     if (cached) {
         logInfo('METADATA_CACHE', 'Using cached agent metadata', { count: cached.length });
         return cached;
     }
-    
-    logInfo('METADATA_CACHE', 'Fetching and parsing agent metadata');
-    const agentFiles = await fetchDirectoryContents(repository, branch, 'agents');
+
     const agents: AgentMetadata[] = [];
-    
-    for (const file of agentFiles) {
-        if (file.type === 'file' && file.name.endsWith('.agent.md')) {
-            try {
-                const content = await downloadFile(file.download_url!);
-                const metadata = parseAgentMetadata(file.name, content, file.download_url!);
-                agents.push(metadata);
-            } catch (error) {
-                logWarn('METADATA_CACHE', 'Failed to parse agent metadata', {
-                    fileName: file.name,
-                    error
-                });
+    const localBase = getLocalCachePath(repository);
+
+    if (localBase) {
+        logInfo('METADATA_CACHE', 'Reading agent metadata from local CLI cache', { localBase });
+        const agentsDir = path.join(localBase, 'agents');
+        if (fs.existsSync(agentsDir)) {
+            for (const file of fs.readdirSync(agentsDir).filter(f => f.endsWith('.agent.md'))) {
+                try {
+                    const localPath = path.join(agentsDir, file);
+                    const content = fs.readFileSync(localPath, 'utf8');
+                    const downloadUrl = `https://raw.githubusercontent.com/${repository}/${branch}/agents/${file}`;
+                    const metadata = parseAgentMetadata(file, content, downloadUrl);
+                    metadata.localPath = localPath;
+                    agents.push(metadata);
+                } catch (error) {
+                    logWarn('METADATA_CACHE', 'Failed to parse local agent', { file, error });
+                }
+            }
+        }
+    } else {
+        logInfo('METADATA_CACHE', 'Fetching agent metadata from GitHub API');
+        const agentFiles = await fetchDirectoryContents(repository, branch, 'agents');
+        for (const file of agentFiles) {
+            if (file.type === 'file' && file.name.endsWith('.agent.md')) {
+                try {
+                    const content = await downloadFile(file.download_url!);
+                    agents.push(parseAgentMetadata(file.name, content, file.download_url!));
+                } catch (error) {
+                    logWarn('METADATA_CACHE', 'Failed to parse agent metadata', { fileName: file.name, error });
+                }
             }
         }
     }
-    
+
     repositoryCache.set(repository, branch, cacheKey, agents);
     logInfo('METADATA_CACHE', 'Agent metadata cached', { count: agents.length });
     return agents;
@@ -132,31 +148,46 @@ async function getCachedAgentMetadata(repository: string, branch: string): Promi
 async function getCachedPromptMetadata(repository: string, branch: string): Promise<PromptMetadata[]> {
     const cacheKey = 'parsed-prompts';
     const cached = repositoryCache.get<PromptMetadata[]>(repository, branch, cacheKey);
-    
     if (cached) {
         logInfo('METADATA_CACHE', 'Using cached prompt metadata', { count: cached.length });
         return cached;
     }
-    
-    logInfo('METADATA_CACHE', 'Fetching and parsing prompt metadata');
-    const promptFiles = await fetchDirectoryContents(repository, branch, 'prompts');
+
     const prompts: PromptMetadata[] = [];
-    
-    for (const file of promptFiles) {
-        if (file.type === 'file' && file.name.endsWith('.prompt.md')) {
-            try {
-                const content = await downloadFile(file.download_url!);
-                const metadata = parsePromptMetadata(file.name, content, file.download_url!);
-                prompts.push(metadata);
-            } catch (error) {
-                logWarn('METADATA_CACHE', 'Failed to parse prompt metadata', {
-                    fileName: file.name,
-                    error
-                });
+    const localBase = getLocalCachePath(repository);
+
+    if (localBase) {
+        logInfo('METADATA_CACHE', 'Reading prompt metadata from local CLI cache', { localBase });
+        const promptsDir = path.join(localBase, 'prompts');
+        if (fs.existsSync(promptsDir)) {
+            for (const file of fs.readdirSync(promptsDir).filter(f => f.endsWith('.prompt.md'))) {
+                try {
+                    const localPath = path.join(promptsDir, file);
+                    const content = fs.readFileSync(localPath, 'utf8');
+                    const downloadUrl = `https://raw.githubusercontent.com/${repository}/${branch}/prompts/${file}`;
+                    const metadata = parsePromptMetadata(file, content, downloadUrl);
+                    metadata.localPath = localPath;
+                    prompts.push(metadata);
+                } catch (error) {
+                    logWarn('METADATA_CACHE', 'Failed to parse local prompt', { file, error });
+                }
+            }
+        }
+    } else {
+        logInfo('METADATA_CACHE', 'Fetching prompt metadata from GitHub API');
+        const promptFiles = await fetchDirectoryContents(repository, branch, 'prompts');
+        for (const file of promptFiles) {
+            if (file.type === 'file' && file.name.endsWith('.prompt.md')) {
+                try {
+                    const content = await downloadFile(file.download_url!);
+                    prompts.push(parsePromptMetadata(file.name, content, file.download_url!));
+                } catch (error) {
+                    logWarn('METADATA_CACHE', 'Failed to parse prompt metadata', { fileName: file.name, error });
+                }
             }
         }
     }
-    
+
     repositoryCache.set(repository, branch, cacheKey, prompts);
     logInfo('METADATA_CACHE', 'Prompt metadata cached', { count: prompts.length });
     return prompts;
@@ -165,31 +196,46 @@ async function getCachedPromptMetadata(repository: string, branch: string): Prom
 async function getCachedInstructionMetadata(repository: string, branch: string): Promise<InstructionMetadata[]> {
     const cacheKey = 'parsed-instructions';
     const cached = repositoryCache.get<InstructionMetadata[]>(repository, branch, cacheKey);
-    
     if (cached) {
         logInfo('METADATA_CACHE', 'Using cached instruction metadata', { count: cached.length });
         return cached;
     }
-    
-    logInfo('METADATA_CACHE', 'Fetching and parsing instruction metadata');
-    const instructionFiles = await fetchDirectoryContents(repository, branch, 'instructions');
+
     const instructions: InstructionMetadata[] = [];
-    
-    for (const file of instructionFiles) {
-        if (file.type === 'file' && file.name.endsWith('.instructions.md')) {
-            try {
-                const content = await downloadFile(file.download_url!);
-                const metadata = parseInstructionMetadata(file.name, content, file.download_url!);
-                instructions.push(metadata);
-            } catch (error) {
-                logWarn('METADATA_CACHE', 'Failed to parse instruction metadata', {
-                    fileName: file.name,
-                    error
-                });
+    const localBase = getLocalCachePath(repository);
+
+    if (localBase) {
+        logInfo('METADATA_CACHE', 'Reading instruction metadata from local CLI cache', { localBase });
+        const instructionsDir = path.join(localBase, 'instructions');
+        if (fs.existsSync(instructionsDir)) {
+            for (const file of fs.readdirSync(instructionsDir).filter(f => f.endsWith('.instructions.md'))) {
+                try {
+                    const localPath = path.join(instructionsDir, file);
+                    const content = fs.readFileSync(localPath, 'utf8');
+                    const downloadUrl = `https://raw.githubusercontent.com/${repository}/${branch}/instructions/${file}`;
+                    const metadata = parseInstructionMetadata(file, content, downloadUrl);
+                    metadata.localPath = localPath;
+                    instructions.push(metadata);
+                } catch (error) {
+                    logWarn('METADATA_CACHE', 'Failed to parse local instruction', { file, error });
+                }
+            }
+        }
+    } else {
+        logInfo('METADATA_CACHE', 'Fetching instruction metadata from GitHub API');
+        const instructionFiles = await fetchDirectoryContents(repository, branch, 'instructions');
+        for (const file of instructionFiles) {
+            if (file.type === 'file' && file.name.endsWith('.instructions.md')) {
+                try {
+                    const content = await downloadFile(file.download_url!);
+                    instructions.push(parseInstructionMetadata(file.name, content, file.download_url!));
+                } catch (error) {
+                    logWarn('METADATA_CACHE', 'Failed to parse instruction metadata', { fileName: file.name, error });
+                }
             }
         }
     }
-    
+
     repositoryCache.set(repository, branch, cacheKey, instructions);
     logInfo('METADATA_CACHE', 'Instruction metadata cached', { count: instructions.length });
     return instructions;
@@ -198,25 +244,45 @@ async function getCachedInstructionMetadata(repository: string, branch: string):
 async function getCachedSkillMetadata(repository: string, branch: string): Promise<SkillMetadata[]> {
     const cacheKey = 'parsed-skills';
     const cached = repositoryCache.get<SkillMetadata[]>(repository, branch, cacheKey);
-
     if (cached) {
         logInfo('METADATA_CACHE', 'Using cached skill metadata', { count: cached.length });
         return cached;
     }
 
-    logInfo('METADATA_CACHE', 'Fetching and parsing skill metadata');
-    const skillDirs = await fetchDirectoryContents(repository, branch, 'skills');
     const skills: SkillMetadata[] = [];
+    const localBase = getLocalCachePath(repository);
 
-    for (const dir of skillDirs) {
-        if (dir.type !== 'dir') { continue; }
-        try {
-            const skillMdUrl = `https://raw.githubusercontent.com/${repository}/${branch}/skills/${dir.name}/SKILL.md`;
-            const content = await downloadFile(skillMdUrl);
-            const metadata = parseSkillMetadata(dir.name, content, skillMdUrl);
-            skills.push(metadata);
-        } catch (error) {
-            logWarn('METADATA_CACHE', 'Failed to parse skill metadata', { folderName: dir.name, error });
+    if (localBase) {
+        logInfo('METADATA_CACHE', 'Reading skill metadata from local CLI cache', { localBase });
+        const skillsDir = path.join(localBase, 'skills');
+        if (fs.existsSync(skillsDir)) {
+            for (const folderName of fs.readdirSync(skillsDir)) {
+                const skillFolder = path.join(skillsDir, folderName);
+                const skillMdPath = path.join(skillFolder, 'SKILL.md');
+                if (!fs.statSync(skillFolder).isDirectory() || !fs.existsSync(skillMdPath)) { continue; }
+                try {
+                    const content = fs.readFileSync(skillMdPath, 'utf8');
+                    const downloadUrl = `https://raw.githubusercontent.com/${repository}/${branch}/skills/${folderName}/SKILL.md`;
+                    const metadata = parseSkillMetadata(folderName, content, downloadUrl);
+                    metadata.localPath = skillFolder;
+                    skills.push(metadata);
+                } catch (error) {
+                    logWarn('METADATA_CACHE', 'Failed to parse local skill', { folderName, error });
+                }
+            }
+        }
+    } else {
+        logInfo('METADATA_CACHE', 'Fetching skill metadata from GitHub API');
+        const skillDirs = await fetchDirectoryContents(repository, branch, 'skills');
+        for (const dir of skillDirs) {
+            if (dir.type !== 'dir') { continue; }
+            try {
+                const skillMdUrl = `https://raw.githubusercontent.com/${repository}/${branch}/skills/${dir.name}/SKILL.md`;
+                const content = await downloadFile(skillMdUrl);
+                skills.push(parseSkillMetadata(dir.name, content, skillMdUrl));
+            } catch (error) {
+                logWarn('METADATA_CACHE', 'Failed to parse skill metadata', { folderName: dir.name, error });
+            }
         }
     }
 
@@ -239,6 +305,7 @@ interface AgentMetadata {
     model?: string;
     tools?: string[];
     downloadUrl: string;
+    localPath?: string;
 }
 
 interface PromptMetadata {
@@ -248,6 +315,7 @@ interface PromptMetadata {
     category?: string;
     tags?: string[];
     downloadUrl: string;
+    localPath?: string;
 }
 
 interface InstructionMetadata {
@@ -257,6 +325,7 @@ interface InstructionMetadata {
     scope?: string;
     language?: string;
     downloadUrl: string;
+    localPath?: string;
 }
 
 interface SkillMetadata {
@@ -266,6 +335,7 @@ interface SkillMetadata {
     domain?: string;
     complexity?: string;
     downloadUrl: string;
+    localPath?: string;
 }
 
 interface SyncStatus {
@@ -278,6 +348,89 @@ interface RepositoryConfig {
     label: string;
     repository: string;
     branch: string;
+}
+
+/**
+ * Returns the local disk cache directory for a repository, creating it if it doesn't exist.
+ * Maps "github/awesome-copilot" → "~/.copilot/marketplace-cache/github-awesome-copilot".
+ */
+function getLocalCacheDir(repository: string): string {
+    const folderName = repository.replace('/', '-');
+    const cachePath = path.join(os.homedir(), '.copilot', 'marketplace-cache', folderName);
+    if (!fs.existsSync(cachePath)) {
+        fs.mkdirSync(cachePath, { recursive: true });
+    }
+    return cachePath;
+}
+
+/**
+ * Ensures a resource subdirectory exists in the disk cache.
+ * If it doesn't exist, creates it and calls syncFn to populate it from GitHub.
+ */
+async function ensureResourceDir(
+    cacheBase: string,
+    resourceType: string,
+    syncFn: () => Promise<void>
+): Promise<string> {
+    const dir = path.join(cacheBase, resourceType);
+    if (!fs.existsSync(dir)) {
+        logInfo('DISK_CACHE', `Cache miss for "${resourceType}", syncing from GitHub...`);
+        fs.mkdirSync(dir, { recursive: true });
+        try {
+            await syncFn();
+        } catch (err) {
+            // Remove the dir on failure so the next call re-attempts the sync
+            fs.rmSync(dir, { recursive: true, force: true });
+            throw err;
+        }
+    }
+    return dir;
+}
+
+/** Downloads all files with `ext` from a flat GitHub directory and writes them to `localDir`. */
+async function syncFlatDir(
+    repository: string, branch: string,
+    remoteDir: string, localDir: string, ext: string
+): Promise<void> {
+    const files = await fetchDirectoryContents(repository, branch, remoteDir);
+    for (const file of files) {
+        if (file.type !== 'file' || !file.name.endsWith(ext) || !file.download_url) { continue; }
+        const content = await downloadFile(file.download_url);
+        fs.writeFileSync(path.join(localDir, file.name), content);
+    }
+    logInfo('DISK_CACHE', `Synced ${remoteDir} to disk`, { localDir, ext });
+}
+
+/** Downloads SKILL.md for every skill folder and writes them into `skillsDir/<name>/SKILL.md`. */
+async function syncSkillsDir(repository: string, branch: string, skillsDir: string): Promise<void> {
+    const dirs = await fetchDirectoryContents(repository, branch, 'skills');
+    for (const dir of dirs.filter(d => d.type === 'dir')) {
+        const skillFolder = path.join(skillsDir, dir.name);
+        if (!fs.existsSync(skillFolder)) { fs.mkdirSync(skillFolder, { recursive: true }); }
+        try {
+            const url = `https://raw.githubusercontent.com/${repository}/${branch}/skills/${dir.name}/SKILL.md`;
+            fs.writeFileSync(path.join(skillFolder, 'SKILL.md'), await downloadFile(url));
+        } catch {
+            // No SKILL.md — skip this skill
+        }
+    }
+    logInfo('DISK_CACHE', 'Synced skills to disk', { skillsDir });
+}
+
+/** Downloads plugin.json for every plugin and writes it to `pluginsDir/<name>/.github/plugin/plugin.json`. */
+async function syncPluginsDir(repository: string, branch: string, pluginsDir: string): Promise<void> {
+    const dirs = await fetchDirectoryContents(repository, branch, 'plugins');
+    for (const dir of dirs.filter(d => d.type === 'dir')) {
+        const manifestDir = path.join(pluginsDir, dir.name, '.github', 'plugin');
+        if (!fs.existsSync(manifestDir)) { fs.mkdirSync(manifestDir, { recursive: true }); }
+        try {
+            const url = `https://raw.githubusercontent.com/${repository}/${branch}/plugins/${dir.name}/.github/plugin/plugin.json`;
+            fs.writeFileSync(path.join(manifestDir, 'plugin.json'), await downloadFile(url));
+        } catch {
+            // No plugin.json — skip
+        }
+    }
+    logInfo('DISK_CACHE', 'Synced plugins to disk', { pluginsDir });
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -1135,7 +1288,9 @@ async function addAgentToProject(agent: AgentMetadata, workspaceFolder: string, 
             downloadUrl: agent.downloadUrl
         });
         
-        const content = await downloadFile(agent.downloadUrl);
+        const content = agent.localPath
+            ? fs.readFileSync(agent.localPath, 'utf8')
+            : await downloadFile(agent.downloadUrl);
         
         // Add attribution header
         const attribution = createAttributionComment(repository, branch, `agents/${agent.filename}`);
@@ -1368,7 +1523,9 @@ async function addPromptToProject(prompt: PromptMetadata, workspaceFolder: strin
         }
 
         // Download the prompt content
-        const content = await downloadFile(prompt.downloadUrl);
+        const content = prompt.localPath
+            ? fs.readFileSync(prompt.localPath, 'utf8')
+            : await downloadFile(prompt.downloadUrl);
         
         // Add attribution header
         const attribution = createAttributionComment(repository, branch, `prompts/${prompt.filename}`);
@@ -1402,7 +1559,9 @@ async function addInstructionToProject(instruction: InstructionMetadata, workspa
         }
 
         // Download the instruction content
-        const content = await downloadFile(instruction.downloadUrl);
+        const content = instruction.localPath
+            ? fs.readFileSync(instruction.localPath, 'utf8')
+            : await downloadFile(instruction.downloadUrl);
         
         // Add attribution header
         const attribution = createAttributionComment(repository, branch, `instructions/${instruction.filename}`);
@@ -1435,17 +1594,30 @@ async function addSkillToProject(skill: SkillMetadata, workspaceFolder: string, 
             fs.mkdirSync(skillDir, { recursive: true });
         }
 
-        // Fetch all files inside the skill folder from the repository
-        const files = await fetchDirectoryContents(repository, branch, `skills/${skill.filename}`);
         let firstFilePath: string | undefined;
 
-        for (const file of files) {
-            if (file.type !== 'file' || !file.download_url) { continue; }
-            const content = await downloadFile(file.download_url);
-            const attribution = createAttributionComment(repository, branch, `skills/${skill.filename}/${file.name}`);
-            const localPath = path.join(skillDir, file.name);
-            fs.writeFileSync(localPath, attribution + content);
-            if (!firstFilePath) { firstFilePath = localPath; }
+        if (skill.localPath) {
+            // Copy directly from local CLI marketplace cache
+            for (const fileName of fs.readdirSync(skill.localPath)) {
+                const srcPath = path.join(skill.localPath, fileName);
+                if (!fs.statSync(srcPath).isFile()) { continue; }
+                const content = fs.readFileSync(srcPath, 'utf8');
+                const attribution = createAttributionComment(repository, branch, `skills/${skill.filename}/${fileName}`);
+                const destPath = path.join(skillDir, fileName);
+                fs.writeFileSync(destPath, attribution + content);
+                if (!firstFilePath) { firstFilePath = destPath; }
+            }
+        } else {
+            // Fetch all files inside the skill folder from the repository
+            const files = await fetchDirectoryContents(repository, branch, `skills/${skill.filename}`);
+            for (const file of files) {
+                if (file.type !== 'file' || !file.download_url) { continue; }
+                const content = await downloadFile(file.download_url);
+                const attribution = createAttributionComment(repository, branch, `skills/${skill.filename}/${file.name}`);
+                const localPath = path.join(skillDir, file.name);
+                fs.writeFileSync(localPath, attribution + content);
+                if (!firstFilePath) { firstFilePath = localPath; }
+            }
         }
 
         const action = await vscode.window.showInformationMessage(
@@ -1683,23 +1855,46 @@ interface PluginEntry {
     folderName: string;
     pluginPath: string;
     manifest: PluginManifest;
+    localPath?: string;
 }
 
 async function fetchPluginList(repository: string, branch: string): Promise<PluginEntry[]> {
-    const pluginDirs = await fetchDirectoryContents(repository, branch, 'plugins');
-    const dirs = pluginDirs.filter(f => f.type === 'dir');
-
     const entries: PluginEntry[] = [];
-    await Promise.all(dirs.map(async (dir) => {
-        try {
-            const manifestUrl = `https://raw.githubusercontent.com/${repository}/${branch}/plugins/${dir.name}/.github/plugin/plugin.json`;
-            const json = await downloadFile(manifestUrl);
-            const manifest: PluginManifest = JSON.parse(json);
-            entries.push({ folderName: dir.name, pluginPath: `plugins/${dir.name}`, manifest });
-        } catch {
-            // plugin.json missing or malformed — skip this entry
+    const localBase = getLocalCachePath(repository);
+
+    if (localBase) {
+        logInfo('PLUGIN', 'Reading plugin list from local CLI cache', { localBase });
+        const pluginsDir = path.join(localBase, 'plugins');
+        if (fs.existsSync(pluginsDir)) {
+            for (const folderName of fs.readdirSync(pluginsDir)) {
+                const manifestPath = path.join(pluginsDir, folderName, '.github', 'plugin', 'plugin.json');
+                if (!fs.existsSync(manifestPath)) { continue; }
+                try {
+                    const manifest: PluginManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+                    entries.push({
+                        folderName,
+                        pluginPath: `plugins/${folderName}`,
+                        manifest,
+                        localPath: path.join(pluginsDir, folderName)
+                    });
+                } catch {
+                    // malformed plugin.json — skip
+                }
+            }
         }
-    }));
+    } else {
+        logInfo('PLUGIN', 'Fetching plugin list from GitHub API');
+        const pluginDirs = await fetchDirectoryContents(repository, branch, 'plugins');
+        await Promise.all(pluginDirs.filter(f => f.type === 'dir').map(async (dir) => {
+            try {
+                const manifestUrl = `https://raw.githubusercontent.com/${repository}/${branch}/plugins/${dir.name}/.github/plugin/plugin.json`;
+                const manifest: PluginManifest = JSON.parse(await downloadFile(manifestUrl));
+                entries.push({ folderName: dir.name, pluginPath: `plugins/${dir.name}`, manifest });
+            } catch {
+                // plugin.json missing or malformed — skip
+            }
+        }));
+    }
 
     return entries.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name));
 }
@@ -1723,32 +1918,40 @@ async function installPluginResources(
     for (const { manifestKey, localDir } of resourceMappings) {
         const paths = (entry.manifest[manifestKey] as string[] | undefined) ?? [];
         for (const relPath of paths) {
-            // relPath is like "./agents", "./skills/foo", etc.
             const normalized = relPath.replace(/^\.\//, '');
-            const repoPath = `${entry.pluginPath}/${normalized}`;
+            const segments = normalized.split('/');
+            const targetSubDir = segments.length > 1
+                ? path.join(workspaceFolder, '.github', localDir, ...segments.slice(1))
+                : path.join(workspaceFolder, '.github', localDir);
+
+            if (!fs.existsSync(targetSubDir)) {
+                fs.mkdirSync(targetSubDir, { recursive: true });
+            }
 
             try {
-                const files = await fetchDirectoryContents(repository, branch, repoPath);
-                const fileItems = files.filter(f => f.type === 'file');
-
-                // Determine local target directory
-                // For skills, preserve the skill subfolder name
-                const segments = normalized.split('/');
-                const targetSubDir = segments.length > 1
-                    ? path.join(workspaceFolder, '.github', localDir, ...segments.slice(1))
-                    : path.join(workspaceFolder, '.github', localDir);
-
-                if (!fs.existsSync(targetSubDir)) {
-                    fs.mkdirSync(targetSubDir, { recursive: true });
-                }
-
-                for (const file of fileItems) {
-                    if (!file.download_url) { continue; }
-                    const content = await downloadFile(file.download_url);
-                    const filePath = `${repoPath}/${file.name}`;
-                    const attribution = createAttributionComment(repository, branch, filePath);
-                    fs.writeFileSync(path.join(targetSubDir, file.name), attribution + content);
-                    installed.push(file.name);
+                if (entry.localPath) {
+                    // Read from local CLI cache
+                    const srcDir = path.join(entry.localPath, normalized);
+                    if (!fs.existsSync(srcDir)) { continue; }
+                    for (const fileName of fs.readdirSync(srcDir)) {
+                        const srcFile = path.join(srcDir, fileName);
+                        if (!fs.statSync(srcFile).isFile()) { continue; }
+                        const content = fs.readFileSync(srcFile, 'utf8');
+                        const attribution = createAttributionComment(repository, branch, `${entry.pluginPath}/${normalized}/${fileName}`);
+                        fs.writeFileSync(path.join(targetSubDir, fileName), attribution + content);
+                        installed.push(fileName);
+                    }
+                } else {
+                    // Download from GitHub API
+                    const repoPath = `${entry.pluginPath}/${normalized}`;
+                    const files = (await fetchDirectoryContents(repository, branch, repoPath)).filter(f => f.type === 'file');
+                    for (const file of files) {
+                        if (!file.download_url) { continue; }
+                        const content = await downloadFile(file.download_url);
+                        const attribution = createAttributionComment(repository, branch, `${repoPath}/${file.name}`);
+                        fs.writeFileSync(path.join(targetSubDir, file.name), attribution + content);
+                        installed.push(file.name);
+                    }
                 }
             } catch (err) {
                 errors.push(`${relPath}: ${err}`);
