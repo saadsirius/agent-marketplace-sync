@@ -4,11 +4,10 @@ A VS Code extension that automatically syncs GitHub Copilot agents, prompts, ins
 
 ## 🚀 Features
 
-- **🔄 Automatic Repository Sync**: Pull content from any compatible repository
+- **🔄 Marketplace Sync**: Pull the latest index and resources from any compatible marketplace
 - **📁 Project Structure Setup**: Initialize proper `.github/` directory structure
-- **🎯 Selective Syncing**: Choose what to sync (agents, prompts, instructions, skills)
-- **🔍 Find & Add Individual Resources**: Search and add specific agents, prompts, instructions, or skills
-- **⚙️ Configurable Sources**: Set custom repositories and branches
+- **🔍 Find & Add Resources**: Search and add specific agents, prompts, instructions, skills, or plugins
+- **⚙️ Configurable Sources**: Set custom marketplace repositories and branches
 - **📝 Source Attribution**: Automatically tracks where content comes from
 - **📊 Progress Tracking**: Real-time sync progress with cancellation support
 - **🧪 Comprehensive Testing**: 54 tests across 5 test suites ensuring reliability
@@ -71,23 +70,17 @@ For more targeted resource management, use the Find & Add commands:
 
 ## 📋 Commands
 
-### Bulk Operations
 | Command | Description |
 |---------|-------------|
-| `Awesome Copilot: Configure Marketplace` | Set marketplace and branch |
-| `Awesome Copilot: Sync Marketplace` | Pull the latest marketplace index |
+| `Awesome Copilot: Configure Marketplace` | Set the marketplace repository and branch |
+| `Awesome Copilot: Sync Marketplace` | Pull the latest marketplace index and resources |
 | `Awesome Copilot: Initialize Project Structure` | Create `.github/` directory structure |
-| `Awesome Copilot: Find and Add Agent` | Discover and install agents from marketplace |
-| `Awesome Copilot: Find and Add Prompt` | Discover and install prompts from marketplace |
-| `Awesome Copilot: Find and Add Instruction` | Discover and install instructions from marketplace |
-
-### Find & Add Individual Resources
-| Command | Description |
-|---------|-------------|
-| `Awesome Copilot: Find and Add Agent` | 🔍 Search and add specific agents with metadata preview |
-| `Awesome Copilot: Find and Add Prompt` | 🔍 Search and add specific prompts with category/tag filtering |
-| `Awesome Copilot: Find and Add Instruction` | 🔍 Search and add specific instructions with scope/language info |
-| `Awesome Copilot: Find and Add Skill` | 🔍 Search and add specific skills with domain/complexity details |
+| `Awesome Copilot: Find and Add Agent` | Search and add agents with metadata preview |
+| `Awesome Copilot: Find and Add Prompt` | Search and add prompts with category/tag filtering |
+| `Awesome Copilot: Find and Add Instruction` | Search and add instructions with scope/language info |
+| `Awesome Copilot: Find and Add Skill` | Search and add skills with domain/complexity details |
+| `Awesome Copilot: Find and Add Plugin` | Search and add plugins from the marketplace |
+| `Awesome Copilot: Remove Repository` | Remove a registered marketplace |
 
 ## ⚙️ Configuration
 
@@ -104,10 +97,11 @@ Configure the extension through VS Code Settings:
 
 ### Settings
 
-- **`targetRepository`**: Repository to sync from (format: `owner/repo`)
+- **`targetRepository`**: Marketplace repository to browse from (format: `owner/repo`) — matches `copilot plugin marketplace`
 - **`branch`**: Git branch to sync from (default: `main`)
 - **`autoSync`**: Automatically sync when workspace opens
 - **`syncOnSave`**: Check for updates when saving copilot files
+- **`repositories`**: List of marketplace repositories to sync from. When populated, overrides `targetRepository`/`branch`
 
 ## 📁 Project Structure
 
