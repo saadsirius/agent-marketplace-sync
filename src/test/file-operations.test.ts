@@ -115,44 +115,49 @@ describe('File Operations and Sync Functions', () => {
   });
 
   describe('Directory Structure Initialization', () => {
-    test('should create required directory structure', () => {
-      const workspaceFolder = '/test/workspace';
-      const directories = [
-        '.github',
-        '.github/agents',
-        '.github/instructions',
-        '.github/skills'
-      ];
-      
-      mockFs.existsSync.mockReturnValue(false);
-      mockPath.join.mockImplementation((...paths) => paths.join('/'));
-      mockFs.mkdirSync.mockReturnValue(undefined);
-      
-      directories.forEach(dir => {
-        const dirPath = path.join(workspaceFolder, dir);
-        if (!fs.existsSync(dirPath)) {
-          fs.mkdirSync(dirPath, { recursive: true });
-        }
-      });
-      
-      expect(mockFs.mkdirSync).toHaveBeenCalledTimes(directories.length);
-      directories.forEach(dir => {
-        expect(mockFs.mkdirSync).toHaveBeenCalledWith(
-          `${workspaceFolder}/${dir}`,
-          { recursive: true }
-        );
-      });
-    });
+    test.each(['.github', '.claude'])(
+      'should create required directory structure for %s',
+      (baseDir) => {
+        const workspaceFolder = '/test/workspace';
+        const directories = [
+          baseDir,
+          `${baseDir}/agents`,
+          `${baseDir}/instructions`,
+          `${baseDir}/skills`
+        ];
 
-    test('should create copilot-instructions.md template', () => {
-      const workspaceFolder = '/test/workspace';
-      const instructionsPath = path.join(workspaceFolder, '.github', 'copilot-instructions.md');
-      
-      mockPath.join.mockReturnValue(`${workspaceFolder}/.github/copilot-instructions.md`);
-      mockFs.existsSync.mockReturnValue(false);
-      mockFs.writeFileSync.mockReturnValue(undefined);
-      
-      const template = `# GitHub Copilot Instructions
+        mockFs.existsSync.mockReturnValue(false);
+        mockPath.join.mockImplementation((...paths) => paths.join('/'));
+        mockFs.mkdirSync.mockReturnValue(undefined);
+
+        directories.forEach(dir => {
+          const dirPath = path.join(workspaceFolder, dir);
+          if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true });
+          }
+        });
+
+        expect(mockFs.mkdirSync).toHaveBeenCalledTimes(directories.length);
+        directories.forEach(dir => {
+          expect(mockFs.mkdirSync).toHaveBeenCalledWith(
+            `${workspaceFolder}/${dir}`,
+            { recursive: true }
+          );
+        });
+      }
+    );
+
+    test.each(['.github', '.claude'])(
+      'should create copilot-instructions.md template in %s',
+      (baseDir) => {
+        const workspaceFolder = '/test/workspace';
+        const instructionsPath = path.join(workspaceFolder, baseDir, 'copilot-instructions.md');
+
+        mockPath.join.mockReturnValue(`${workspaceFolder}/${baseDir}/copilot-instructions.md`);
+        mockFs.existsSync.mockReturnValue(false);
+        mockFs.writeFileSync.mockReturnValue(undefined);
+
+        const template = `# GitHub Copilot Instructions
 
 This file provides instructions to GitHub Copilot for working with this repository.
 
@@ -168,13 +173,14 @@ This file provides instructions to GitHub Copilot for working with this reposito
 
 <!-- Add architectural patterns and decisions here -->
 `;
-      
-      if (!fs.existsSync(instructionsPath)) {
-        fs.writeFileSync(instructionsPath, template);
+
+        if (!fs.existsSync(instructionsPath)) {
+          fs.writeFileSync(instructionsPath, template);
+        }
+
+        expect(mockFs.writeFileSync).toHaveBeenCalledWith(instructionsPath, template);
       }
-      
-      expect(mockFs.writeFileSync).toHaveBeenCalledWith(instructionsPath, template);
-    });
+    );
 
     test('should create AGENTS.md template', () => {
       const workspaceFolder = '/test/workspace';
@@ -206,19 +212,22 @@ This file provides instructions to GitHub Copilot for working with this reposito
       expect(mockFs.writeFileSync).toHaveBeenCalledWith(agentsPath, template);
     });
 
-    test('should skip creating files that already exist', () => {
-      const workspaceFolder = '/test/workspace';
-      const instructionsPath = path.join(workspaceFolder, '.github', 'copilot-instructions.md');
-      
-      mockPath.join.mockReturnValue(`${workspaceFolder}/.github/copilot-instructions.md`);
-      mockFs.existsSync.mockReturnValue(true); // File already exists
-      
-      if (!fs.existsSync(instructionsPath)) {
-        fs.writeFileSync(instructionsPath, 'template');
+    test.each(['.github', '.claude'])(
+      'should skip creating files that already exist in %s',
+      (baseDir) => {
+        const workspaceFolder = '/test/workspace';
+        const instructionsPath = path.join(workspaceFolder, baseDir, 'copilot-instructions.md');
+
+        mockPath.join.mockReturnValue(`${workspaceFolder}/${baseDir}/copilot-instructions.md`);
+        mockFs.existsSync.mockReturnValue(true); // File already exists
+
+        if (!fs.existsSync(instructionsPath)) {
+          fs.writeFileSync(instructionsPath, 'template');
+        }
+
+        expect(mockFs.writeFileSync).not.toHaveBeenCalled();
       }
-      
-      expect(mockFs.writeFileSync).not.toHaveBeenCalled();
-    });
+    );
   });
 
   describe('File Extension Validation', () => {
@@ -268,19 +277,22 @@ This file provides instructions to GitHub Copilot for working with this reposito
   });
 
   describe('Error Handling', () => {
-    test('should handle file system errors gracefully', () => {
-      const workspaceFolder = '/test/workspace';
-      const dirPath = path.join(workspaceFolder, '.github');
-      
-      mockPath.join.mockReturnValue(`${workspaceFolder}/.github`);
-      mockFs.mkdirSync.mockImplementation(() => {
-        throw new Error('Permission denied');
-      });
-      
-      expect(() => {
-        fs.mkdirSync(dirPath, { recursive: true });
-      }).toThrow('Permission denied');
-    });
+    test.each(['.github', '.claude'])(
+      'should handle file system errors gracefully for %s',
+      (baseDir) => {
+        const workspaceFolder = '/test/workspace';
+        const dirPath = path.join(workspaceFolder, baseDir);
+
+        mockPath.join.mockReturnValue(`${workspaceFolder}/${baseDir}`);
+        mockFs.mkdirSync.mockImplementation(() => {
+          throw new Error('Permission denied');
+        });
+
+        expect(() => {
+          fs.mkdirSync(dirPath, { recursive: true });
+        }).toThrow('Permission denied');
+      }
+    );
 
     test('should handle write file errors', () => {
       const filePath = '/test/readonly/file.md';

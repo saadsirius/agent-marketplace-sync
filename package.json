@@ -104,6 +104,12 @@
           "default": false,
           "description": "Check for updates when saving copilot files"
         },
+        "awesome-copilot-sync.baseDirectory": {
+          "type": "string",
+          "default": ".github",
+          "enum": [".github", ".claude"],
+          "description": "Base directory for storing synced copilot resources"
+        },
         "awesome-copilot-sync.repositories": {
           "type": "array",
           "default": [],

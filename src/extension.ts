@@ -596,6 +596,30 @@ async function selectRepository(): Promise<{ repository: string; branch: string 
     return { repository: selected.repo.repository, branch: selected.repo.branch || 'main' };
 }
 
+// Utility functions for configurable directory support
+const INSTRUCTIONS_FILE = 'copilot-instructions.md';
+
+function getBaseDirectory(): string {
+    const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
+    return config.get<string>('baseDirectory') ?? '.github';
+}
+
+function getResourcePath(workspaceFolder: string, resourceType: string, baseDir?: string): string {
+    const dir = baseDir ?? getBaseDirectory();
+    return path.join(workspaceFolder, dir, resourceType);
+}
+
+function getInstructionsPath(workspaceFolder: string, baseDir?: string): string {
+    const dir = baseDir ?? getBaseDirectory();
+    return path.join(workspaceFolder, dir, INSTRUCTIONS_FILE);
+}
+
+function ensureDirectoryExists(dirPath: string): void {
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+    }
+}
+
 async function initializeStructure() {
     const operationId = generateOperationId();
     logInfo('INIT', 'Starting structure initialization', { operationId });
@@ -606,16 +630,17 @@ async function initializeStructure() {
         return;
     }
     
-    logDebug('INIT', 'Workspace folder found', { 
+    logDebug('INIT', 'Workspace folder found', {
         operationId,
-        workspaceFolder 
+        workspaceFolder
     });
 
+    const baseDir = getBaseDirectory();
     const directories = [
-        '.github',
-        '.github/agents',
-        '.github/instructions',
-        '.github/skills'
+        baseDir,
+        `${baseDir}/agents`,
+        `${baseDir}/instructions`,
+        `${baseDir}/skills`
     ];
 
     try {
@@ -623,27 +648,19 @@ async function initializeStructure() {
             operationId,
             directories
         });
-        
+
         for (const dir of directories) {
             const dirPath = path.join(workspaceFolder, dir);
-            if (!fs.existsSync(dirPath)) {
-                logDebug('INIT', 'Creating directory', { 
-                    operationId,
-                    directory: dir,
-                    fullPath: dirPath 
-                });
-                fs.mkdirSync(dirPath, { recursive: true });
-            } else {
-                logDebug('INIT', 'Directory already exists', { 
-                    operationId,
-                    directory: dir,
-                    fullPath: dirPath 
-                });
-            }
+            ensureDirectoryExists(dirPath);
+            logDebug('INIT', 'Directory ready', {
+                operationId,
+                directory: dir,
+                fullPath: dirPath
+            });
         }
 
         // Create basic copilot-instructions.md if it doesn't exist
-        const instructionsPath = path.join(workspaceFolder, '.github', 'copilot-instructions.md');
+        const instructionsPath = getInstructionsPath(workspaceFolder, baseDir);
         if (!fs.existsSync(instructionsPath)) {
             logDebug('INIT', 'Creating copilot-instructions.md template', { 
                 operationId,
@@ -1086,22 +1103,11 @@ async function addAgentToProject(agent: AgentMetadata, workspaceFolder: string, 
         repository,
         branch
     });
-    
+
     try {
         // Ensure agents directory exists
-        const agentsDir = path.join(workspaceFolder, '.github', 'agents');
-        if (!fs.existsSync(agentsDir)) {
-            logDebug('ADD_AGENT', 'Creating agents directory', {
-                operationId,
-                agentsDir
-            });
-            fs.mkdirSync(agentsDir, { recursive: true });
-        } else {
-            logDebug('ADD_AGENT', 'Agents directory already exists', {
-                operationId,
-                agentsDir
-            });
-        }
+        const agentsDir = getResourcePath(workspaceFolder, 'agents');
+        ensureDirectoryExists(agentsDir);
 
         // Download the agent content
         logDebug('ADD_AGENT', 'Downloading agent content', {
@@ -1267,10 +1273,8 @@ function parseSkillMetadata(folderName: string, content: string, downloadUrl: st
 async function addInstructionToProject(instruction: InstructionMetadata, workspaceFolder: string, repository: string, branch: string) {
     try {
         // Ensure instructions directory exists
-        const instructionsDir = path.join(workspaceFolder, '.github', 'instructions');
-        if (!fs.existsSync(instructionsDir)) {
-            fs.mkdirSync(instructionsDir, { recursive: true });
-        }
+        const instructionsDir = getResourcePath(workspaceFolder, 'instructions');
+        ensureDirectoryExists(instructionsDir);
 
         // Download the instruction content
         const content = instruction.localPath
@@ -1302,11 +1306,9 @@ async function addInstructionToProject(instruction: InstructionMetadata, workspa
 
 async function addSkillToProject(skill: SkillMetadata, workspaceFolder: string, repository: string, branch: string) {
     try {
-        // Create the skill's own subfolder under .github/skills/
-        const skillDir = path.join(workspaceFolder, '.github', 'skills', skill.filename);
-        if (!fs.existsSync(skillDir)) {
-            fs.mkdirSync(skillDir, { recursive: true });
-        }
+        // Create the skill's own subfolder under base directory/skills/
+        const skillDir = path.join(getResourcePath(workspaceFolder, 'skills'), skill.filename);
+        ensureDirectoryExists(skillDir);
 
         let firstFilePath: string | undefined;
 
@@ -1563,6 +1565,9 @@ async function installPluginResources(
     const installed: string[] = [];
     const errors: string[] = [];
 
+    // Cache base directory to avoid repeated configuration reads in nested loops
+    const baseDir = getBaseDirectory();
+
     const resourceMappings: Array<{ manifestKey: keyof PluginManifest; localDir: string }> = [
         { manifestKey: 'agents', localDir: 'agents' },
         { manifestKey: 'instructions', localDir: 'instructions' },
@@ -1576,12 +1581,10 @@ async function installPluginResources(
             const normalized = relPath.replace(/^\.\//, '');
             const segments = normalized.split('/');
             const targetSubDir = segments.length > 1
-                ? path.join(workspaceFolder, '.github', localDir, ...segments.slice(1))
-                : path.join(workspaceFolder, '.github', localDir);
+                ? path.join(getResourcePath(workspaceFolder, localDir, baseDir), ...segments.slice(1))
+                : getResourcePath(workspaceFolder, localDir, baseDir);
 
-            if (!fs.existsSync(targetSubDir)) {
-                fs.mkdirSync(targetSubDir, { recursive: true });
-            }
+            ensureDirectoryExists(targetSubDir);
 
             try {
                 // localPath is always set with unified disk cache
