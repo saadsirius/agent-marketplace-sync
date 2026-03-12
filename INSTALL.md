@@ -57,7 +57,6 @@ your-project/
 │   ├── copilot-instructions.md
 │   ├── agents/
 │   ├── instructions/
-│   ├── prompts/
 │   └── skills/
 └── AGENTS.md
 ```
@@ -77,7 +76,6 @@ your-project/
 
 Use the "Find and Add" commands to discover and install specific resources:
 - `Agent Marketplace: Find and Add Agent` - Discover and add agents
-- `Agent Marketplace: Find and Add Prompt` - Discover and add prompts
 - `Agent Marketplace: Find and Add Instruction` - Discover and add instructions
 - `Agent Marketplace: Find and Add Skill` - Discover and add skills
 - `Agent Marketplace: Find and Add Plugin` - Discover and add plugins
@@ -114,7 +112,7 @@ Access settings via:
 1. Initialize structure
 2. Configure to sync from `github/awesome-copilot` 
 3. Sync all resources
-4. Result: Get TypeScript best practices, testing prompts, and code review agents
+4. Result: Get TypeScript best practices, testing resources, and code review agents
 
 ### Scenario 2: Custom Company Standards
 
@@ -136,12 +134,6 @@ Access settings via:
 - **Location**: `.github/agents/`  
 - **Purpose**: Specialized GitHub Copilot chat modes
 - **Example**: Code reviewers, debuggers, architects
-
-### Prompts (Reusable Tasks)
-- **File Pattern**: `.prompt.md`
-- **Location**: `.github/prompts/`
-- **Purpose**: Ready-to-use prompts for common tasks
-- **Example**: Test generation, code refactoring, documentation
 
 ### Instructions (Coding Standards)
 - **File Pattern**: `.instructions.md` 
@@ -205,9 +197,6 @@ your-copilot-repo/
 ├── agents/
 │   ├── my-agent.agent.md
 │   └── another-agent.agent.md
-├── prompts/
-│   ├── my-prompt.prompt.md
-│   └── another-prompt.prompt.md
 ├── instructions/
 │   ├── my-standards.instructions.md
 │   └── testing.instructions.md

@@ -1,12 +1,12 @@
 # Agent Marketplace Sync
 
-A VS Code extension that automatically syncs GitHub Copilot agents, prompts, instructions, and skills from repositories following the [awesome-copilot](https://github.com/github/awesome-copilot) structure.
+A VS Code extension that automatically syncs GitHub Copilot agents, instructions, and skills from repositories following the [awesome-copilot](https://github.com/github/awesome-copilot) structure.
 
 ## 🚀 Features
 
 - **🔄 Marketplace Sync**: Pull the latest index and resources from any compatible marketplace
 - **📁 Project Structure Setup**: Initialize proper `.github/` directory structure
-- **🔍 Find & Add Resources**: Search and add specific agents, prompts, instructions, skills, or plugins
+- **🔍 Find & Add Resources**: Search and add specific agents, instructions, skills, or plugins
 - **⚙️ Configurable Sources**: Set custom marketplace repositories and branches
 - **📝 Source Attribution**: Automatically tracks where content comes from
 - **📊 Progress Tracking**: Real-time sync progress with cancellation support
@@ -123,10 +123,6 @@ your-project/
 │   │   ├── typescript.instructions.md
 │   │   ├── python.instructions.md
 │   │   └── testing.instructions.md
-│   ├── prompts/                    # 🎯 Reusable task prompts
-│   │   ├── write-tests.prompt.md
-│   │   ├── code-review.prompt.md
-│   │   └── refactor-code.prompt.md
 │   └── skills/                     # 🛠️ Advanced workflow skills
 │       ├── git-workflow/
 │       └── deployment/
@@ -151,22 +147,6 @@ You are an expert code reviewer...
 ```
 
 **Parsed Metadata**: Name, description, supported models, available tools
-
-### 🎯 Prompts (`.prompt.md`)
-Ready-to-use prompts for common development tasks:
-
-```markdown
----
-description: 'Generate comprehensive unit tests'
-category: 'testing'
-tags: ['unit-tests', 'automation', 'quality']
----
-
-# Write Tests
-Generate unit tests for the selected code...
-```
-
-**Parsed Metadata**: Name, description, category, tags
 
 ### 📋 Instructions (`.instructions.md`)
 Coding standards applied to specific file patterns:
@@ -212,7 +192,6 @@ This extension works with any repository following the awesome-copilot structure
 ```
 your-repo/
 ├── agents/           # .agent.md files
-├── prompts/          # .prompt.md files  
 ├── instructions/     # .instructions.md files
 ├── skills/           # Folders with SKILL.md files
 └── (optional) collections/  # .yml collection files
@@ -271,7 +250,7 @@ npm run test:coverage
 ```
 
 #### Test Coverage
-- **metadata-parsing.test.ts**: Agent, prompt, instruction, and skill metadata parsing
+- **metadata-parsing.test.ts**: Agent, instruction, and skill metadata parsing
 - **github-api.test.ts**: GitHub API integration and HTTP error handling  
 - **vscode-integration.test.ts**: VS Code API interactions and user interface
 - **file-operations.test.ts**: File system operations and directory management

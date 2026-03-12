@@ -23,7 +23,6 @@ my-project/
 │   ├── copilot-instructions.md   # Created with basic template
 │   ├── agents/                   # Empty directory created
 │   ├── instructions/             # Empty directory created
-│   ├── prompts/                  # Empty directory created
 │   └── skills/                   # Empty directory created
 ├── src/
 │   ├── index.ts
@@ -51,12 +50,6 @@ my-project/
 │   │   ├── javascript.instructions.md
 │   │   ├── testing.instructions.md
 │   │   └── code-review.instructions.md
-│   ├── prompts/                  # Now contains .prompt.md files
-│   │   ├── write-tests.prompt.md
-│   │   ├── code-review.prompt.md
-│   │   ├── refactor-code.prompt.md
-│   │   ├── generate-docs.prompt.md
-│   │   └── debug-issue.prompt.md
 │   └── skills/                   # Now contains skill folders
 │       ├── git-workflow/
 │       │   └── SKILL.md
@@ -92,7 +85,6 @@ You are an expert code reviewer...
 
 ### In VS Code Chat
 - Type `@code-reviewer` to use the code reviewer agent
-- Use prompts like `/write-tests` for quick test generation
 - Instructions automatically apply to files matching their patterns
 
 ### With GitHub Copilot CLI  
