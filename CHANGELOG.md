@@ -2,6 +2,11 @@
 
 All notable changes to the "awesome-copilot-sync" extension will be documented in this file.
 
+## [1.2.4] - 2026-03-12
+
+### Fixed
+- Use VS Code's built-in GitHub authentication API to obtain an OAuth token for all GitHub HTTP requests, resolving 404 errors when downloading private or rate-limited repositories
+
 ## [1.2.3] - 2026-03-06
 
 ### Fixed

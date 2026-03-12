@@ -18,7 +18,7 @@ A VS Code extension that automatically syncs GitHub Copilot agents, prompts, ins
 
 1. Clone or download this repository:
    ```bash
-   git clone https://github.com/your-username/vscode-awesome-copilot.git
+   git clone https://github.com/gardlt/vscode-awesome-copilot.git
    cd vscode-awesome-copilot
    ```
 
@@ -74,13 +74,14 @@ For more targeted resource management, use the Find & Add commands:
 |---------|-------------|
 | `Awesome Copilot: Configure Marketplace` | Set the marketplace repository and branch |
 | `Awesome Copilot: Sync Marketplace` | Pull the latest marketplace index and resources |
-| `Awesome Copilot: Initialize Project Structure` | Create `.github/` directory structure |
+| `Awesome Copilot: Initialize Project Structure` | Create base directory structure |
 | `Awesome Copilot: Find and Add Agent` | Search and add agents with metadata preview |
-| `Awesome Copilot: Find and Add Prompt` | Search and add prompts with category/tag filtering |
 | `Awesome Copilot: Find and Add Instruction` | Search and add instructions with scope/language info |
 | `Awesome Copilot: Find and Add Skill` | Search and add skills with domain/complexity details |
 | `Awesome Copilot: Find and Add Plugin` | Search and add plugins from the marketplace |
 | `Awesome Copilot: Remove Repository` | Remove a registered marketplace |
+| `Awesome Copilot: Clear Repository Cache` | Clear cached repository data |
+| `Awesome Copilot: Show Cache Statistics` | Display cache usage and status |
 
 ## ⚙️ Configuration
 
@@ -91,7 +92,9 @@ Configure the extension through VS Code Settings:
   "awesome-copilot-sync.targetRepository": "github/awesome-copilot",
   "awesome-copilot-sync.branch": "main",
   "awesome-copilot-sync.autoSync": false,
-  "awesome-copilot-sync.syncOnSave": false
+  "awesome-copilot-sync.syncOnSave": false,
+  "awesome-copilot-sync.baseDirectory": ".github",
+  "awesome-copilot-sync.repositories": []
 }
 ```
 
@@ -101,15 +104,16 @@ Configure the extension through VS Code Settings:
 - **`branch`**: Git branch to sync from (default: `main`)
 - **`autoSync`**: Automatically sync when workspace opens
 - **`syncOnSave`**: Check for updates when saving copilot files
-- **`repositories`**: List of marketplace repositories to sync from. When populated, overrides `targetRepository`/`branch`
+- **`baseDirectory`**: Base directory for synced resources — either `.github` (default, for GitHub Copilot) or `.claude` (for Claude)
+- **`repositories`**: List of marketplace repositories to sync from. When populated, overrides `targetRepository`/`branch`. Each entry supports `repository` (required, `owner/repo`), `label` (optional display name), and `branch` (optional, defaults to `main`)
 
 ## 📁 Project Structure
 
-After initialization and syncing, your project will have:
+After initialization and syncing, your project will have (using `.github` as the base directory):
 
 ```
 your-project/
-├── .github/
+├── .github/                        # or .claude/ depending on baseDirectory setting
 │   ├── copilot-instructions.md     # 📄 Main Copilot instructions
 │   ├── agents/                     # 🤖 Specialized chat agents
 │   │   ├── code-reviewer.agent.md
@@ -216,7 +220,7 @@ your-repo/
 
 ## 🔄 Sync Process
 
-1. **Authenticates** with GitHub API using standard headers
+1. **Authenticates** with GitHub using VS Code's built-in GitHub OAuth integration
 2. **Fetches** directory contents from configured repository and branch
 3. **Downloads** individual files with comprehensive error handling
 4. **Parses** frontmatter metadata for rich resource information

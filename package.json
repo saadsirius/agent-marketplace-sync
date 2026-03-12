@@ -2,7 +2,7 @@
   "name": "vscode-awesome-copilot",
   "displayName": "Awesome Copilot Sync",
   "description": "Sync GitHub Copilot agents, prompts, instructions, and skills from awesome-copilot repositories",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "publisher": "gardltio",
   "license": "MIT",
   "repository": {
@@ -107,7 +107,10 @@
         "awesome-copilot-sync.baseDirectory": {
           "type": "string",
           "default": ".github",
-          "enum": [".github", ".claude"],
+          "enum": [
+            ".github",
+            ".claude"
+          ],
           "description": "Base directory for storing synced copilot resources"
         },
         "awesome-copilot-sync.repositories": {

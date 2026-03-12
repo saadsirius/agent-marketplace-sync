@@ -256,11 +256,35 @@ function getLocalCacheDir(repository: string): string {
     return cachePath;
 }
 
+/** Returns the GitHub OAuth token from VS Code's built-in GitHub auth session, or undefined if not available. */
+async function getGitHubToken(): Promise<string | undefined> {
+    try {
+        const session = await vscode.authentication.getSession('github', ['repo'], { createIfNone: false });
+        return session?.accessToken;
+    } catch {
+        return undefined;
+    }
+}
+
+/** Builds request headers for GitHub requests, injecting auth token when available. */
+async function buildGitHubHeaders(extra?: Record<string, string>): Promise<Record<string, string>> {
+    const token = await getGitHubToken();
+    const headers: Record<string, string> = {
+        'User-Agent': 'VSCode-Awesome-Copilot-Sync',
+        ...extra,
+    };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+}
+
 /** Downloads a binary file from `url` to `destPath`, following redirects. */
 async function downloadBinaryToFile(url: string, destPath: string): Promise<void> {
+    const headers = await buildGitHubHeaders();
     return new Promise((resolve, reject) => {
         const doRequest = (requestUrl: string) => {
-            https.get(requestUrl, { headers: { 'User-Agent': 'VSCode-Awesome-Copilot-Sync' } }, (res) => {
+            https.get(requestUrl, { headers }, (res) => {
                 if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
                     res.resume();
                     doRequest(res.headers.location);
@@ -777,18 +801,14 @@ async function fetchDirectoryContents(repository: string, branch: string, path: 
         url
     });
     
+    const requestHeaders = await buildGitHubHeaders({ 'Accept': 'application/vnd.github.v3+json' });
+
+    logDebug('API', 'Making GitHub API request', {
+        operationId,
+        headers: requestHeaders
+    });
+
     return new Promise((resolve, reject) => {
-        
-        const requestHeaders = {
-            'User-Agent': 'VSCode-Awesome-Copilot-Sync',
-            'Accept': 'application/vnd.github.v3+json'
-        };
-        
-        logDebug('API', 'Making GitHub API request', {
-            operationId,
-            headers: requestHeaders
-        });
-        
         https.get(url, {
             headers: requestHeaders
         }, (res) => {
@@ -872,14 +892,15 @@ async function fetchDirectoryContents(repository: string, branch: string, path: 
 
 async function downloadFile(url: string): Promise<string> {
     const operationId = generateOperationId();
-    
+
     logDebug('DOWNLOAD', 'Starting file download', {
         operationId,
         url
     });
-    
+
+    const headers = await buildGitHubHeaders();
     return new Promise((resolve, reject) => {
-        https.get(url, (res) => {
+        https.get(url, { headers }, (res) => {
             let data = '';
             
             logDebug('DOWNLOAD', 'Download response received', {
