@@ -1,6 +1,6 @@
 # Example Project Structure
 
-This directory shows what your project structure will look like after using the Awesome Copilot Sync extension.
+This directory shows what your project structure will look like after using the Agent Marketplace Sync extension.
 
 ## Before Using the Extension
 
@@ -15,7 +15,7 @@ my-project/
 ## After Running Extension Commands
 
 ### 1. Initialize Project Structure
-Run: `Awesome Copilot: Initialize Project Structure`
+Run: `Agent Marketplace: Initialize Project Structure`
 
 ```
 my-project/
@@ -33,7 +33,7 @@ my-project/
 ```
 
 ### 2. Configure and Sync
-Run: `Awesome Copilot: Configure Repository`, then use individual sync commands (e.g., `Awesome Copilot: Sync Agents Only`)
+Run: `Agent Marketplace: Configure Repository`, then use individual sync commands (e.g., `Agent Marketplace: Sync Agents Only`)
 
 ```
 my-project/

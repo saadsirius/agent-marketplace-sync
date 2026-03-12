@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the "awesome-copilot-sync" extension will be documented in this file.
+All notable changes to the "agent-marketplace-sync" extension will be documented in this file.
 
 ## [1.2.4] - 2026-03-12
 
@@ -40,7 +40,7 @@ All notable changes to the "awesome-copilot-sync" extension will be documented i
 ## [1.0.0] - 2026-02-09
 
 ### Added
-- Initial release of Awesome Copilot Sync extension
+- Initial release of Agent Marketplace Sync extension
 - Repository configuration with target repository and branch selection
 - Project structure initialization command
 - Selective syncing of agents, prompts, instructions, and skills
@@ -65,10 +65,10 @@ All notable changes to the "awesome-copilot-sync" extension will be documented i
 - Skill folders with `SKILL.md` files from `skills/` directory
 
 ### Configuration Options
-- `awesome-copilot-sync.targetRepository`: Repository to sync from
-- `awesome-copilot-sync.branch`: Branch to sync from
-- `awesome-copilot-sync.autoSync`: Auto-sync on workspace open
-- `awesome-copilot-sync.syncOnSave`: Check for updates on file save
+- `agent-marketplace-sync.targetRepository`: Repository to sync from
+- `agent-marketplace-sync.branch`: Branch to sync from
+- `agent-marketplace-sync.autoSync`: Auto-sync on workspace open
+- `agent-marketplace-sync.syncOnSave`: Check for updates on file save
 
 ### Development Features
 - TypeScript implementation for type safety

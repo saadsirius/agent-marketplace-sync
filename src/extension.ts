@@ -372,7 +372,7 @@ async function ensureMarketplaceSynced(repository: string, branch: string): Prom
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    logInfo('EXTENSION', 'Awesome Copilot Sync extension is activating...');
+    logInfo('EXTENSION', 'Agent Marketplace Sync extension is activating...');
     
     const extensionVersion = context.extension.packageJSON.version;
     const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -385,16 +385,16 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register commands
     const commands = [
-        vscode.commands.registerCommand('awesome-copilot-sync.configure', configureRepository),
-        vscode.commands.registerCommand('awesome-copilot-sync.removeRepository', removeRepository),
-        vscode.commands.registerCommand('awesome-copilot-sync.syncMarketplace', syncMarketplace),
-        vscode.commands.registerCommand('awesome-copilot-sync.initializeStructure', initializeStructure),
-        vscode.commands.registerCommand('awesome-copilot-sync.findAndAddAgent', findAndAddAgent),
-        vscode.commands.registerCommand('awesome-copilot-sync.findAndAddInstruction', findAndAddInstruction),
-        vscode.commands.registerCommand('awesome-copilot-sync.findAndAddSkill', findAndAddSkill),
-        vscode.commands.registerCommand('awesome-copilot-sync.findAndAddPlugin', findAndAddPlugin),
-        vscode.commands.registerCommand('awesome-copilot-sync.clearCache', clearRepositoryCache),
-        vscode.commands.registerCommand('awesome-copilot-sync.showCacheStats', showCacheStats)
+        vscode.commands.registerCommand('agent-marketplace-sync.configure', configureRepository),
+        vscode.commands.registerCommand('agent-marketplace-sync.removeRepository', removeRepository),
+        vscode.commands.registerCommand('agent-marketplace-sync.syncMarketplace', syncMarketplace),
+        vscode.commands.registerCommand('agent-marketplace-sync.initializeStructure', initializeStructure),
+        vscode.commands.registerCommand('agent-marketplace-sync.findAndAddAgent', findAndAddAgent),
+        vscode.commands.registerCommand('agent-marketplace-sync.findAndAddInstruction', findAndAddInstruction),
+        vscode.commands.registerCommand('agent-marketplace-sync.findAndAddSkill', findAndAddSkill),
+        vscode.commands.registerCommand('agent-marketplace-sync.findAndAddPlugin', findAndAddPlugin),
+        vscode.commands.registerCommand('agent-marketplace-sync.clearCache', clearRepositoryCache),
+        vscode.commands.registerCommand('agent-marketplace-sync.showCacheStats', showCacheStats)
     ];
 
     commands.forEach(command => context.subscriptions.push(command));
@@ -410,7 +410,7 @@ export function activate(context: vscode.ExtensionContext) {
     migrateRepositorySettings().catch(err => logError('EXTENSION', 'Settings migration failed', err));
 
     // Auto sync if enabled
-    const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
+    const config = vscode.workspace.getConfiguration('agent-marketplace-sync');
     const autoSync = config.get('autoSync');
     
     logInfo('EXTENSION', 'Checking auto-sync configuration', { autoSync });
@@ -428,7 +428,7 @@ async function configureRepository() {
     const operationId = generateOperationId();
     logInfo('CONFIG', 'Starting repository configuration', { operationId });
 
-    const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
+    const config = vscode.workspace.getConfiguration('agent-marketplace-sync');
     const repos = config.get<RepositoryConfig[]>('repositories') ?? [];
 
     const repoInput = await vscode.window.showInputBox({
@@ -506,7 +506,7 @@ async function removeRepository() {
     const operationId = generateOperationId();
     logInfo('REMOVE_REPO', 'Starting remove repository operation', { operationId });
 
-    const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
+    const config = vscode.workspace.getConfiguration('agent-marketplace-sync');
     const repos = config.get<RepositoryConfig[]>('repositories') ?? [];
 
     if (repos.length === 0) {
@@ -563,7 +563,7 @@ async function syncMarketplace() {
 }
 
 async function migrateRepositorySettings(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
+    const config = vscode.workspace.getConfiguration('agent-marketplace-sync');
     const repos = config.get<RepositoryConfig[]>('repositories') ?? [];
     if (repos.length > 0) {
         return;
@@ -579,12 +579,12 @@ async function migrateRepositorySettings(): Promise<void> {
     await config.update('repositories', migrated, vscode.ConfigurationTarget.Workspace);
     logInfo('MIGRATE', 'Migrated legacy targetRepository to repositories array', { repository: legacyRepo, branch: legacyBranch });
     vscode.window.showInformationMessage(
-        `Awesome Copilot: Migrated "${legacyRepo}" to the new multi-marketplace settings. Use "Configure Marketplace" to add more.`
+        `Agent Marketplace: Migrated "${legacyRepo}" to the new multi-marketplace settings. Use "Configure Marketplace" to add more.`
     );
 }
 
 async function selectRepository(): Promise<{ repository: string; branch: string } | undefined> {
-    const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
+    const config = vscode.workspace.getConfiguration('agent-marketplace-sync');
     const repos = config.get<RepositoryConfig[]>('repositories') ?? [];
 
     if (repos.length === 0) {
@@ -624,7 +624,7 @@ async function selectRepository(): Promise<{ repository: string; branch: string 
 const INSTRUCTIONS_FILE = 'copilot-instructions.md';
 
 function getBaseDirectory(): string {
-    const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
+    const config = vscode.workspace.getConfiguration('agent-marketplace-sync');
     return config.get<string>('baseDirectory') ?? '.github';
 }
 
@@ -1481,7 +1481,7 @@ async function clearRepositoryCache() {
     repositoryCache.clear();
     
     // Clear disk cache for all configured repositories
-    const config = vscode.workspace.getConfiguration('awesome-copilot-sync');
+    const config = vscode.workspace.getConfiguration('agent-marketplace-sync');
     const repositories: RepositoryConfig[] = config.get('repositories') ?? [];
     for (const repo of repositories) {
         const folderName = repo.repository.replace('/', '-');

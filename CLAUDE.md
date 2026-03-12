@@ -1,4 +1,4 @@
-# Awesome Copilot Sync VS Code Extension
+# Agent Marketplace Sync VS Code Extension
 
 This VS Code extension allows you to sync GitHub Copilot agents, prompts, instructions, and skills from repositories that follow the [awesome-copilot](https://github.com/github/awesome-copilot) structure.
 
@@ -13,17 +13,17 @@ This VS Code extension allows you to sync GitHub Copilot agents, prompts, instru
 ## Commands
 
 ### Setup Commands
-- `Awesome Copilot: Configure Marketplace` - Set the marketplace to browse from
-- `Awesome Copilot: Remove Repository` - Remove a registered marketplace
-- `Awesome Copilot: Sync Marketplace` - Pull the latest marketplace index and resources
-- `Awesome Copilot: Initialize Project Structure` - Create the basic `.github/` directory structure
+- `Agent Marketplace: Configure Marketplace` - Set the marketplace to browse from
+- `Agent Marketplace: Remove Repository` - Remove a registered marketplace
+- `Agent Marketplace: Sync Marketplace` - Pull the latest marketplace index and resources
+- `Agent Marketplace: Initialize Project Structure` - Create the basic `.github/` directory structure
 
 ### Resource Commands
-- `Awesome Copilot: Find and Add Agent` - Discover and install agents
-- `Awesome Copilot: Find and Add Prompt` - Discover and install prompts
-- `Awesome Copilot: Find and Add Instruction` - Discover and install instructions
-- `Awesome Copilot: Find and Add Skill` - Discover and install skills
-- `Awesome Copilot: Find and Add Plugin` - Discover and install plugins
+- `Agent Marketplace: Find and Add Agent` - Discover and install agents
+- `Agent Marketplace: Find and Add Prompt` - Discover and install prompts
+- `Agent Marketplace: Find and Add Instruction` - Discover and install instructions
+- `Agent Marketplace: Find and Add Skill` - Discover and install skills
+- `Agent Marketplace: Find and Add Plugin` - Discover and install plugins
 
 ## Project Structure
 
@@ -44,15 +44,15 @@ your-project/
 
 The extension can be configured through VS Code settings:
 
-- `awesome-copilot-sync.targetRepository`: Marketplace to browse from (default: "github/awesome-copilot") - aligned with `copilot plugin marketplace`
-- `awesome-copilot-sync.branch`: Branch to sync from (default: "main")
-- `awesome-copilot-sync.autoSync`: Automatically sync when workspace opens (default: false)
-- `awesome-copilot-sync.syncOnSave`: Check for updates when saving copilot files (default: false)
+- `agent-marketplace-sync.targetRepository`: Marketplace to browse from (default: "github/awesome-copilot") - aligned with `copilot plugin marketplace`
+- `agent-marketplace-sync.branch`: Branch to sync from (default: "main")
+- `agent-marketplace-sync.autoSync`: Automatically sync when workspace opens (default: false)
+- `agent-marketplace-sync.syncOnSave`: Check for updates when saving copilot files (default: false)
 
 ## Usage
 
-1. **Initialize Structure**: Run `Awesome Copilot: Initialize Project Structure` to create the basic directory structure
-2. **Configure Marketplace**: Run `Awesome Copilot: Configure Marketplace` to set your marketplace
+1. **Initialize Structure**: Run `Agent Marketplace: Initialize Project Structure` to create the basic directory structure
+2. **Configure Marketplace**: Run `Agent Marketplace: Configure Marketplace` to set your marketplace
 3. **Find and Add Resources**: Use the `Find and Add *` commands to discover and install agents, prompts, instructions, skills, and plugins from the marketplace
 
 ## Compatible Repository Structure

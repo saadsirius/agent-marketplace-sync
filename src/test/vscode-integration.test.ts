@@ -71,7 +71,7 @@ describe('VS Code Integration Functions', () => {
       
       mockVSCode.workspace.getConfiguration.mockReturnValue(mockConfig);
       
-      const config = mockVSCode.workspace.getConfiguration('awesome-copilot-sync');
+      const config = mockVSCode.workspace.getConfiguration('agent-marketplace-sync');
       
       expect(config.get('targetRepository')).toBe('github/awesome-copilot');
       expect(config.get('branch')).toBe('main');
@@ -86,7 +86,7 @@ describe('VS Code Integration Functions', () => {
       
       mockVSCode.workspace.getConfiguration.mockReturnValue(mockConfig);
       
-      const config = mockVSCode.workspace.getConfiguration('awesome-copilot-sync');
+      const config = mockVSCode.workspace.getConfiguration('agent-marketplace-sync');
       await config.update('targetRepository', 'user/custom-repo', mockVSCode.ConfigurationTarget.Workspace);
       
       expect(mockConfig.update).toHaveBeenCalledWith(
@@ -221,15 +221,15 @@ describe('VS Code Integration Functions', () => {
   describe('Command Registration', () => {
     test('should register all extension commands', () => {
       const mockCommands = [
-        'awesome-copilot-sync.configure',
-        'awesome-copilot-sync.removeRepository',
-        'awesome-copilot-sync.initializeStructure',
-        'awesome-copilot-sync.findAndAddAgent',
-        'awesome-copilot-sync.findAndAddInstruction',
-        'awesome-copilot-sync.findAndAddSkill',
-        'awesome-copilot-sync.findAndAddPlugin',
-        'awesome-copilot-sync.clearCache',
-        'awesome-copilot-sync.showCacheStats'
+        'agent-marketplace-sync.configure',
+        'agent-marketplace-sync.removeRepository',
+        'agent-marketplace-sync.initializeStructure',
+        'agent-marketplace-sync.findAndAddAgent',
+        'agent-marketplace-sync.findAndAddInstruction',
+        'agent-marketplace-sync.findAndAddSkill',
+        'agent-marketplace-sync.findAndAddPlugin',
+        'agent-marketplace-sync.clearCache',
+        'agent-marketplace-sync.showCacheStats'
       ];
       
       mockCommands.forEach(command => {

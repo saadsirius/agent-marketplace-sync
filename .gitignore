@@ -5,3 +5,13 @@ out
 .env
 *.log
 .DS_Store
+coverage
+dist
+build
+*.tsbuildinfo
+*.map
+*.bak
+*.tmp
+*.swp
+*.swo
+*.swn

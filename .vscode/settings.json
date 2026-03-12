@@ -1,13 +1,8 @@
 {
-    "awesome-copilot-sync.repositories": [
+    "agent-marketplace-sync.repositories": [
         {
             "label": "github/awesome-copilot",
             "repository": "github/awesome-copilot",
-            "branch": "main"
-        },
-        {
-            "label": "gardlt/bocadillo-client",
-            "repository": "gardlt/bocadillo-client",
             "branch": "main"
         }
     ]

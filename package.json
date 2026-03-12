@@ -1,8 +1,8 @@
 {
-  "name": "vscode-awesome-copilot",
-  "displayName": "Awesome Copilot Sync",
-  "description": "Sync GitHub Copilot agents, prompts, instructions, and skills from awesome-copilot repositories",
-  "version": "1.2.4",
+  "name": "agent-marketplace-sync",
+  "displayName": "Agent Marketplace Sync",
+  "description": "Sync AI agents, prompts, instructions, and skills from awesome-copilot repositories into .github or .claude",
+  "version": "1.3.0",
   "publisher": "gardltio",
   "license": "MIT",
   "repository": {
@@ -31,80 +31,80 @@
   "contributes": {
     "commands": [
       {
-        "command": "awesome-copilot-sync.configure",
+        "command": "agent-marketplace-sync.configure",
         "title": "Configure Marketplace",
-        "category": "Awesome Copilot"
+        "category": "Agent Marketplace"
       },
       {
-        "command": "awesome-copilot-sync.removeRepository",
+        "command": "agent-marketplace-sync.removeRepository",
         "title": "Remove Repository",
-        "category": "Awesome Copilot"
+        "category": "Agent Marketplace"
       },
       {
-        "command": "awesome-copilot-sync.syncMarketplace",
+        "command": "agent-marketplace-sync.syncMarketplace",
         "title": "Sync Marketplace",
-        "category": "Awesome Copilot"
+        "category": "Agent Marketplace"
       },
       {
-        "command": "awesome-copilot-sync.initializeStructure",
+        "command": "agent-marketplace-sync.initializeStructure",
         "title": "Initialize Project Structure",
-        "category": "Awesome Copilot"
+        "category": "Agent Marketplace"
       },
       {
-        "command": "awesome-copilot-sync.findAndAddAgent",
+        "command": "agent-marketplace-sync.findAndAddAgent",
         "title": "Find and Add Agent",
-        "category": "Awesome Copilot"
+        "category": "Agent Marketplace"
       },
       {
-        "command": "awesome-copilot-sync.findAndAddInstruction",
+        "command": "agent-marketplace-sync.findAndAddInstruction",
         "title": "Find and Add Instruction",
-        "category": "Awesome Copilot"
+        "category": "Agent Marketplace"
       },
       {
-        "command": "awesome-copilot-sync.findAndAddSkill",
+        "command": "agent-marketplace-sync.findAndAddSkill",
         "title": "Find and Add Skill",
-        "category": "Awesome Copilot"
+        "category": "Agent Marketplace"
       },
       {
-        "command": "awesome-copilot-sync.findAndAddPlugin",
+        "command": "agent-marketplace-sync.findAndAddPlugin",
         "title": "Find and Add Plugin",
-        "category": "Awesome Copilot"
+        "category": "Agent Marketplace"
       },
       {
-        "command": "awesome-copilot-sync.clearCache",
+        "command": "agent-marketplace-sync.clearCache",
         "title": "Clear Repository Cache",
-        "category": "Awesome Copilot"
+        "category": "Agent Marketplace"
       },
       {
-        "command": "awesome-copilot-sync.showCacheStats",
+        "command": "agent-marketplace-sync.showCacheStats",
         "title": "Show Cache Statistics",
-        "category": "Awesome Copilot"
+        "category": "Agent Marketplace"
       }
     ],
     "configuration": {
-      "title": "Awesome Copilot Sync",
+      "title": "Agent Marketplace Sync",
       "properties": {
-        "awesome-copilot-sync.targetRepository": {
+        "agent-marketplace-sync.targetRepository": {
           "type": "string",
           "default": "github/awesome-copilot",
           "description": "Marketplace repository (format: owner/repo) - matches copilot plugin marketplace"
         },
-        "awesome-copilot-sync.branch": {
+        "agent-marketplace-sync.branch": {
           "type": "string",
           "default": "main",
           "description": "Branch to sync from"
         },
-        "awesome-copilot-sync.autoSync": {
+        "agent-marketplace-sync.autoSync": {
           "type": "boolean",
           "default": false,
           "description": "Automatically sync when workspace opens"
         },
-        "awesome-copilot-sync.syncOnSave": {
+        "agent-marketplace-sync.syncOnSave": {
           "type": "boolean",
           "default": false,
           "description": "Check for updates when saving copilot files"
         },
-        "awesome-copilot-sync.baseDirectory": {
+        "agent-marketplace-sync.baseDirectory": {
           "type": "string",
           "default": ".github",
           "enum": [
@@ -113,7 +113,7 @@
           ],
           "description": "Base directory for storing synced copilot resources"
         },
-        "awesome-copilot-sync.repositories": {
+        "agent-marketplace-sync.repositories": {
           "type": "array",
           "default": [],
           "description": "List of repositories to sync from. When populated, overrides targetRepository/branch settings.",
@@ -144,13 +144,13 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "awesome-copilot-sync.configure"
+          "command": "agent-marketplace-sync.configure"
         },
         {
-          "command": "awesome-copilot-sync.initializeStructure"
+          "command": "agent-marketplace-sync.initializeStructure"
         },
         {
-          "command": "awesome-copilot-sync.findAndAddAgent"
+          "command": "agent-marketplace-sync.findAndAddAgent"
         }
       ]
     }

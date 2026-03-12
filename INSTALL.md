@@ -48,7 +48,7 @@
 
 1. Open your project folder in VS Code
 2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
-3. Type: `Awesome Copilot: Initialize Project Structure`
+3. Type: `Agent Marketplace: Initialize Project Structure`
 4. This creates the basic `.github/` directory structure:
 
 ```
@@ -65,7 +65,7 @@ your-project/
 ### Step 2: Configure Marketplace
 
 1. Press `Ctrl+Shift+P`
-2. Type: `Awesome Copilot: Configure Marketplace`
+2. Type: `Agent Marketplace: Configure Marketplace`
 3. Enter the repository to sync from (default: `github/awesome-copilot`)
 4. Enter the branch to sync from (default: `main`)
 
@@ -76,34 +76,34 @@ your-project/
 ### Step 3: Find and Add Resources
 
 Use the "Find and Add" commands to discover and install specific resources:
-- `Awesome Copilot: Find and Add Agent` - Discover and add agents
-- `Awesome Copilot: Find and Add Prompt` - Discover and add prompts
-- `Awesome Copilot: Find and Add Instruction` - Discover and add instructions
-- `Awesome Copilot: Find and Add Skill` - Discover and add skills
-- `Awesome Copilot: Find and Add Plugin` - Discover and add plugins
+- `Agent Marketplace: Find and Add Agent` - Discover and add agents
+- `Agent Marketplace: Find and Add Prompt` - Discover and add prompts
+- `Agent Marketplace: Find and Add Instruction` - Discover and add instructions
+- `Agent Marketplace: Find and Add Skill` - Discover and add skills
+- `Agent Marketplace: Find and Add Plugin` - Discover and add plugins
 
 ## 🔧 Configuration
 
 Access settings via:
 - **File > Preferences > Settings** (Windows/Linux)
 - **Code > Preferences > Settings** (Mac)
-- Search for "Awesome Copilot"
+- Search for "Agent Marketplace"
 
 ### Available Settings
 
 ```json
 {
   // Repository to sync from (owner/repo format)
-  "awesome-copilot-sync.targetRepository": "github/awesome-copilot",
+  "agent-marketplace-sync.targetRepository": "github/awesome-copilot",
   
   // Branch to sync from  
-  "awesome-copilot-sync.branch": "main",
+  "agent-marketplace-sync.branch": "main",
   
   // Auto-sync when opening workspace
-  "awesome-copilot-sync.autoSync": false,
+  "agent-marketplace-sync.autoSync": false,
   
   // Check for updates when saving copilot files
-  "awesome-copilot-sync.syncOnSave": false
+  "agent-marketplace-sync.syncOnSave": false
 }
 ```
 
@@ -189,7 +189,7 @@ tools: ['codebase']
 
 ### Getting Help
 
-1. **Check the Console**: View > Output > Select "Awesome Copilot Sync"  
+1. **Check the Console**: View > Output > Select "Agent Marketplace Sync"  
 2. **Verify Repository Structure**: Ensure target repo follows awesome-copilot format
 3. **Test with Default**: Try syncing from `github/awesome-copilot` first
 4. **File Issues**: Report problems in the GitHub repository
@@ -227,4 +227,4 @@ Each file needs proper frontmatter - see the examples directory for templates.
 3. **Update centrally** - changes sync to everyone
 4. **Allow customization** - team members can modify synced files locally
 
-Ready to get started? Run `Awesome Copilot: Initialize Project Structure` in your project! 🎉
+Ready to get started? Run `Agent Marketplace: Initialize Project Structure` in your project! 🎉
