@@ -2,7 +2,7 @@
   "name": "agent-marketplace-sync",
   "displayName": "Agent Marketplace Sync",
   "description": "Sync AI agents, instructions, and skills from awesome-copilot repositories into .github or .claude",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "publisher": "gardltio",
   "license": "MIT",
   "repository": {

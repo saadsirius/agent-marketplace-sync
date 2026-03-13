@@ -292,9 +292,17 @@ async function signInWithGitHub(): Promise<void> {
     }
 }
 
-/** Builds request headers for GitHub requests, injecting auth token when available. */
+/** Builds request headers for GitHub requests. Prompts for sign-in if no token is available. */
 async function buildGitHubHeaders(extra?: Record<string, string>): Promise<Record<string, string>> {
-    const token = await getGitHubToken();
+    let token = await getGitHubToken();
+    if (!token) {
+        try {
+            const session = await vscode.authentication.getSession('github', ['repo'], { createIfNone: true });
+            token = session?.accessToken;
+        } catch {
+            // User dismissed the prompt — proceed unauthenticated
+        }
+    }
     const headers: Record<string, string> = {
         'User-Agent': 'VSCode-Awesome-Copilot-Sync',
         ...extra,
@@ -505,7 +513,7 @@ async function configureRepository() {
             vscode.window.showInformationMessage(`Added repository: ${repoInput}@${branchInput}`);
             logInfo('CONFIG', 'Repository entry added', { operationId, repository: repoInput, branch: branchInput });
         }
-        await config.update('repositories', updatedRepos, vscode.ConfigurationTarget.Workspace);
+        await config.update('repositories', updatedRepos, vscode.ConfigurationTarget.Global);
         
         // Sync the marketplace if it's a new entry
         if (isNewEntry) {
@@ -554,7 +562,7 @@ async function removeRepository() {
     }
 
     const updatedRepos = repos.filter(r => r.repository !== selected.repo.repository);
-    await config.update('repositories', updatedRepos, vscode.ConfigurationTarget.Workspace);
+    await config.update('repositories', updatedRepos, vscode.ConfigurationTarget.Global);
     logInfo('REMOVE_REPO', 'Repository removed', { operationId, repository: selected.repo.repository });
     vscode.window.showInformationMessage(`Removed repository: ${selected.repo.repository}`);
 }
@@ -600,7 +608,7 @@ async function migrateRepositorySettings(): Promise<void> {
     const legacyRepo = config.get<string>('targetRepository')!;
     const legacyBranch = config.get<string>('branch') || 'main';
     const migrated: RepositoryConfig[] = [{ repository: legacyRepo, branch: legacyBranch }];
-    await config.update('repositories', migrated, vscode.ConfigurationTarget.Workspace);
+    await config.update('repositories', migrated, vscode.ConfigurationTarget.Global);
     logInfo('MIGRATE', 'Migrated legacy targetRepository to repositories array', { repository: legacyRepo, branch: legacyBranch });
     vscode.window.showInformationMessage(
         `Agent Marketplace: Migrated "${legacyRepo}" to the new multi-marketplace settings. Use "Configure Marketplace" to add more.`
