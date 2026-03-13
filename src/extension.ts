@@ -238,7 +238,6 @@ interface SyncStatus {
 }
 
 interface RepositoryConfig {
-    label: string;
     repository: string;
     branch: string;
 }
@@ -458,26 +457,19 @@ async function configureRepository() {
         return;
     }
 
-    const labelInput = await vscode.window.showInputBox({
-        prompt: 'Enter a friendly label for this repository (optional)',
-        value: existingEntry?.label ?? repoInput,
-        placeHolder: repoInput
-    });
-    const label = labelInput?.trim() || repoInput;
-
     try {
         let updatedRepos: RepositoryConfig[];
         let isNewEntry = false;
         if (existingEntry) {
             updatedRepos = repos.map(r =>
-                r.repository === repoInput ? { label, repository: repoInput, branch: branchInput } : r
+                r.repository === repoInput ? { repository: repoInput, branch: branchInput } : r
             );
-            vscode.window.showInformationMessage(`Updated repository: ${label} (${repoInput}@${branchInput})`);
+            vscode.window.showInformationMessage(`Updated repository: ${repoInput}@${branchInput}`);
             logInfo('CONFIG', 'Repository entry updated', { operationId, repository: repoInput, branch: branchInput });
         } else {
-            updatedRepos = [...repos, { label, repository: repoInput, branch: branchInput }];
+            updatedRepos = [...repos, { repository: repoInput, branch: branchInput }];
             isNewEntry = true;
-            vscode.window.showInformationMessage(`Added repository: ${label} (${repoInput}@${branchInput})`);
+            vscode.window.showInformationMessage(`Added repository: ${repoInput}@${branchInput}`);
             logInfo('CONFIG', 'Repository entry added', { operationId, repository: repoInput, branch: branchInput });
         }
         await config.update('repositories', updatedRepos, vscode.ConfigurationTarget.Workspace);
@@ -515,8 +507,7 @@ async function removeRepository() {
     }
 
     const items = repos.map(r => ({
-        label: r.label || r.repository,
-        description: r.label && r.label !== r.repository ? r.repository : undefined,
+        label: r.repository,
         detail: `Branch: ${r.branch || 'main'}`,
         repo: r
     }));
@@ -532,7 +523,7 @@ async function removeRepository() {
     const updatedRepos = repos.filter(r => r.repository !== selected.repo.repository);
     await config.update('repositories', updatedRepos, vscode.ConfigurationTarget.Workspace);
     logInfo('REMOVE_REPO', 'Repository removed', { operationId, repository: selected.repo.repository });
-    vscode.window.showInformationMessage(`Removed repository: ${selected.label}`);
+    vscode.window.showInformationMessage(`Removed repository: ${selected.repo.repository}`);
 }
 
 async function syncMarketplace() {
@@ -575,7 +566,7 @@ async function migrateRepositorySettings(): Promise<void> {
     }
     const legacyRepo = config.get<string>('targetRepository')!;
     const legacyBranch = config.get<string>('branch') || 'main';
-    const migrated: RepositoryConfig[] = [{ label: legacyRepo, repository: legacyRepo, branch: legacyBranch }];
+    const migrated: RepositoryConfig[] = [{ repository: legacyRepo, branch: legacyBranch }];
     await config.update('repositories', migrated, vscode.ConfigurationTarget.Workspace);
     logInfo('MIGRATE', 'Migrated legacy targetRepository to repositories array', { repository: legacyRepo, branch: legacyBranch });
     vscode.window.showInformationMessage(
@@ -601,15 +592,13 @@ async function selectRepository(): Promise<{ repository: string; branch: string 
     }
 
     const items = repos.map(r => ({
-        label: r.label || r.repository,
-        description: r.label && r.label !== r.repository ? r.repository : undefined,
+        label: r.repository,
         detail: `Branch: ${r.branch || 'main'}`,
         repo: r
     }));
 
     const selected = await vscode.window.showQuickPick(items, {
-        placeHolder: 'Select a repository to sync from...',
-        matchOnDescription: true
+        placeHolder: 'Select a repository to sync from...'
     });
     if (!selected) {
         logWarn('SELECT_REPO', 'User cancelled repository selection');
